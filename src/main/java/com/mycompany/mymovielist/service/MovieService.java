@@ -22,10 +22,6 @@ public class MovieService {
     @Inject
     private MovieRepository movieRepository;
 
-    public MovieService(MovieRepository movieRepository) {
-        this.movieRepository = movieRepository;
-    }
-
     public List<Movie> getAvailableMovies() {
         return movieRepository.getAll();
     }
