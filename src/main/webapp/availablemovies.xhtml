@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Available Movies</title>
+</h:head>
+<h:body>
+    <h:form>
+        <p:dataTable value="#{movieViewBean.availableMovies}" var="movie" paginator="true" rows="10">
+            <p:column headerText="ID">
+                <h:outputText value="#{movie.id}" />
+            </p:column>
+            <p:column headerText="Title">
+                <h:outputText value="#{movie.title}" />
+            </p:column>
+            <p:column headerText="Year">
+                <h:outputText value="#{movie.releaseYear}" />
+            </p:column>
+            <p:column headerText="Genre">
+                <h:outputText value="#{movie.genre}" />
+            </p:column>
+            <p:column headerText="Rating">
+                <h:outputText value="#{movie.rating}" />
+            </p:column>
+            <p:column headerText="Description">
+                <h:outputText value="#{movie.description}" />
+            </p:column>
+        </p:dataTable>
+    </h:form>
+</h:body>
+</html>
