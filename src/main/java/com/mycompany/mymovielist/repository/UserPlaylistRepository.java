@@ -9,13 +9,14 @@ package com.mycompany.mymovielist.repository;
  * @author kiran
  */
 import com.mycompany.mymovielist.model.*;
+import com.mycompany.mymovielist.util.EMFProvider;
 import javax.persistence.EntityManager;
 import java.util.*;
 
 
 public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Long> {
-    public UserPlaylistRepository(EntityManager entityManager) {
-        super(UserPlaylist.class, entityManager);
+    public UserPlaylistRepository() {
+        super(UserPlaylist.class, EMFProvider.getEntityManager());
     }
     
     public List<UserPlaylist> getListsByUserId(User user){

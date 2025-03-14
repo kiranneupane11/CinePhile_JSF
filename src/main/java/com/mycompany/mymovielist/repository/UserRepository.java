@@ -5,6 +5,7 @@
 package com.mycompany.mymovielist.repository;
 
 import com.mycompany.mymovielist.model.*;
+import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
 import javax.persistence.EntityManager;
 
@@ -13,8 +14,8 @@ import javax.persistence.EntityManager;
  * @author kiran
  */
 public class UserRepository extends DatabaseRepository<User, Long> {
-    public UserRepository(EntityManager entityManager) {
-        super(User.class, entityManager);
+    public UserRepository() {
+        super(User.class, EMFProvider.getEntityManager());
     }
     
     public Optional<User> findByUsername(String username) {

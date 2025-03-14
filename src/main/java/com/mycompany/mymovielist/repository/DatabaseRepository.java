@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.mymovielist.repository;
+import com.mycompany.mymovielist.util.EMFProvider;
 
 /**
  *
@@ -18,7 +19,7 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
 
     protected DatabaseRepository(Class<T> entityType, EntityManager entityManager) {
         this.entityType = entityType;
-        this.entityManager = entityManager;
+        this.entityManager = EMFProvider.getEntityManager();
 
     }
 

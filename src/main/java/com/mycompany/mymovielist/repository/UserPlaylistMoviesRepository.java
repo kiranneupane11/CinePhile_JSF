@@ -5,7 +5,7 @@
 package com.mycompany.mymovielist.repository;
 
 import com.mycompany.mymovielist.model.*;
-import javax.persistence.EntityManager;
+import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
 
 /**
@@ -13,8 +13,8 @@ import java.util.*;
  * @author kiran
  */
 public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylistMovies, Long> {
-    public UserPlaylistMoviesRepository(EntityManager entityManager) {
-        super(UserPlaylistMovies.class, entityManager);
+    public UserPlaylistMoviesRepository() {
+        super(UserPlaylistMovies.class, EMFProvider.getEntityManager());
     }
     
     public List<UserMovieRatingDTO> getMoviesFromPlaylist(UserPlaylist playlist, User user) {

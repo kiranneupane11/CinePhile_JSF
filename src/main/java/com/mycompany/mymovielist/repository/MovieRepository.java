@@ -7,8 +7,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import com.mycompany.mymovielist.model.*;
-import javax.persistence.EntityManager;
-
+import com.mycompany.mymovielist.util.EMFProvider;
 /**
  *
  * @author kiran
@@ -17,8 +16,8 @@ import javax.persistence.EntityManager;
 @ApplicationScoped
 public class MovieRepository extends DatabaseRepository<Movie, Long> {
     @Inject
-    public MovieRepository(EntityManager entityManager) {
-        super(Movie.class, entityManager);
+    public MovieRepository() {
+        super(Movie.class, EMFProvider.getEntityManager());
     }
     
 }
