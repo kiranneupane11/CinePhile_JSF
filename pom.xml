@@ -72,9 +72,6 @@
         <artifactId>primefaces</artifactId>
         <version>8.0</version>
      </dependency>
-
-      
-      <!-- Downgraded Hibernate (compatible with Java 8) with exclusion for dom4j -->
           
       <!-- jBCrypt remains unchanged -->
       <dependency>

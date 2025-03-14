@@ -18,7 +18,7 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
     
     public List<Object[]> getUserRatedMovies(UserMovieRating usermovie){
     return entityManager.createQuery(
-        "SELECT um,m FROM UserMovieRating um JOIN Movie m ON um.movieId = m.id WHERE um.userId = :userId", 
+        "SELECT um,m FROM UserMovieRating um JOIN Movie m ON um.movie = m.id WHERE um.user = :userId", 
         Object[].class)
         .setParameter("userId", usermovie.getUserID())
         .getResultList();

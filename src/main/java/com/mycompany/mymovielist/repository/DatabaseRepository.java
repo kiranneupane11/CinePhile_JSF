@@ -22,7 +22,7 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
         this.entityManager = EMFProvider.getEntityManager();
 
     }
-
+    
     @Override
     public void add(ID id, T item) {
         entityManager.getTransaction().begin(); 
@@ -44,8 +44,11 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
 
     @Override
     public List<T> getAll() {
-        return entityManager.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
+        String entityName = entityType.getSimpleName();
+        List<T> items = entityManager.createQuery("SELECT e FROM " + entityName + " e", entityType)                
                 .getResultList();
+        System.out.println("Movies fetched: " + items.size());
+        return items;
     }
 }
 

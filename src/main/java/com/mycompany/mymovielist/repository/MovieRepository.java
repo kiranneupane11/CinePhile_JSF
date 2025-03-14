@@ -8,6 +8,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.util.EMFProvider;
+import java.util.*;
+import javax.persistence.EntityManager;
+
 /**
  *
  * @author kiran
@@ -18,6 +21,15 @@ public class MovieRepository extends DatabaseRepository<Movie, Long> {
     @Inject
     public MovieRepository() {
         super(Movie.class, EMFProvider.getEntityManager());
+    }
+    
+    public List<Movie> getAllMovies() {
+        EntityManager em = EMFProvider.getEntityManager();
+        try {
+            return em.createQuery("SELECT m FROM Movie m", Movie.class).getResultList();
+        } finally {
+            em.close();
+        }
     }
     
 }

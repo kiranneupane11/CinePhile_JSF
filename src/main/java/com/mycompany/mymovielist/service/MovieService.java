@@ -23,7 +23,7 @@ public class MovieService {
     private MovieRepository movieRepository;
 
     public List<Movie> getAvailableMovies() {
-        return movieRepository.getAll();
+        return movieRepository.getAllMovies();
     }
 
     public Optional<Movie> getMovieById(long id) {

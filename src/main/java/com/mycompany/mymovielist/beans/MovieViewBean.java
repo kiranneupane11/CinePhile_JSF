@@ -14,9 +14,9 @@ import java.util.*;
  *
  * @author kiran
  */
-@Named("AvailableMoviesBean")
+@Named
 @RequestScoped
-public class AvailableMoviesBean {
+public class MovieViewBean {
     
     @Inject
     private MovieService movieService;
@@ -25,7 +25,13 @@ public class AvailableMoviesBean {
     
     @PostConstruct
     public void init() {
+        try {
         availableMovies = movieService.getAvailableMovies();
+    } catch (Exception e) {
+        System.err.println("Error in init: " + e.getMessage());
+        e.printStackTrace();
+        throw e;
+    }
     }
     
     public List<Movie> getAvailableMovies() {
