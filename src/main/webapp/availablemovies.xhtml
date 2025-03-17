@@ -27,6 +27,16 @@
                 <h:outputText value="#{movie.description}" />
             </p:column>
         </p:dataTable>
+        
+        <p:panel rendered="#{not authenticationBean.loggedIn}">
+            <p:button value="Login" outcome="/login.xhtml"/>
+            <p:button value="Sign Up" outcome="/signup.xhtml"/>
+        </p:panel>
+        
+        <p:panel rendered="#{authenticationBean.loggedIn}">
+            <h:outputText value="Welcome, #{authenticationBean.username}!"/>
+            <p:commandButton value="LogOut" action="#{authenticationBean.logout()}" update="@form"/>         
+        </p:panel>
     </h:form>
 </h:body>
 </html>

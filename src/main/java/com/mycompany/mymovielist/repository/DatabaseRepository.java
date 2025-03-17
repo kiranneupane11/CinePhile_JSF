@@ -47,7 +47,7 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
         String entityName = entityType.getSimpleName();
         List<T> items = entityManager.createQuery("SELECT e FROM " + entityName + " e", entityType)                
                 .getResultList();
-        System.out.println("Movies fetched: " + items.size());
+        System.out.println("Items fetched: " + items.size());
         return items;
     }
 }

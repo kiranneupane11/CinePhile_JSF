@@ -7,17 +7,25 @@ package com.mycompany.mymovielist.service;
 import com.mycompany.mymovielist.model.User;
 import com.mycompany.mymovielist.repository.UserRepository;
 import com.mycompany.mymovielist.util.PasswordService;
-
+import javax.inject.Inject;
 import java.util.Optional;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author kiran
  */
+@Named
+@ApplicationScoped
 public class AuthenticationService {
-    private final UserRepository userRepository;
-    private final PasswordService passwordService;
+    private UserRepository userRepository;
+    private PasswordService passwordService;
+    
+    protected AuthenticationService() {
+    }
 
+    @Inject
     public AuthenticationService(UserRepository userRepository, PasswordService passwordService) {
         this.userRepository = userRepository;
         this.passwordService = passwordService;

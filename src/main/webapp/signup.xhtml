@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Sign Up</title>
+    <h:outputStylesheet library="css" name="login.css" />
+</h:head>
+    <h:body>
+        <h:form>
+        <div class="card">
+        <h5>Sign Up</h5>
+        <div class="field grid">
+            <p:outputLabel for="email" styleClass="col-fixed" style="width:100px" value="email"/>
+            <div class="col">
+                <p:inputText id="email" value="#{authenticationBean.email}"/>
+            </div>
+        </div>
+        <div class="field grid">
+            <p:outputLabel for="username" styleClass="col-fixed" style="width:100px" value="Username"/>
+            <div class="col">
+                <p:inputText id="username" value="#{authenticationBean.username}"/>
+            </div>
+        </div>
+        <div class="field grid">
+            <p:outputLabel for="password" styleClass="col-fixed" style="width:100px" value="Password"/>
+            <div class="col">
+                <p:inputText id="password" value="#{authenticationBean.password}"/>
+            </div>
+        </div>
+        <p:commandButton value="Signup" action="#{authenticationBean.signup()}" update="@form" ajax="false" />
+            <h:outputText value="#{authenticationBean.message}" styleClass="message"/>
+        </div>
+    </h:form>
+    </h:body>
+</html>

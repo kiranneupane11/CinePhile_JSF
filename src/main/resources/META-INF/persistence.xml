@@ -6,6 +6,7 @@
   <persistence-unit name="MovieListPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
           <class>com.mycompany.mymovielist.model.Movie</class>
+          <class>com.mycompany.mymovielist.model.User</class>
 
     <properties>
       <!-- Database Configuration -->
