@@ -1,42 +1,102 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
 <h:head>
     <title>Available Movies</title>
+    <h:outputStylesheet library="css" name="movie-card.css" />
+    <h:outputStylesheet library="css" name="movie-details.css" />
 </h:head>
 <h:body>
-    <h:form>
-        <p:dataTable value="#{movieViewBean.availableMovies}" var="movie" paginator="true" rows="10">
-            <p:column headerText="ID">
-                <h:outputText value="#{movie.id}" />
-            </p:column>
-            <p:column headerText="Title">
-                <h:outputText value="#{movie.title}" />
-            </p:column>
-            <p:column headerText="Year">
-                <h:outputText value="#{movie.releaseYear}" />
-            </p:column>
-            <p:column headerText="Genre">
-                <h:outputText value="#{movie.genre}" />
-            </p:column>
-            <p:column headerText="Rating">
-                <h:outputText value="#{movie.rating}" />
-            </p:column>
-            <p:column headerText="Description">
-                <h:outputText value="#{movie.description}" />
-            </p:column>
-        </p:dataTable>
-        
+    <h3>Top Rated Movies</h3>
+    <h:form id="mainForm">
+        <!-- Search bar -->
+        <p:inputText id="searchTerm" value="#{movieViewBean.searchTerm}" placeholder="Search movies, lists...">
+            <f:ajax event="keyup" render="movieGrid" listener="#{movieViewBean.searchMovies}" />
+        </p:inputText>
+        <p:commandButton value="Search" action="#{movieViewBean.searchMovies}" update="movieGrid" />
+
         <p:panel rendered="#{not authenticationBean.loggedIn}">
             <p:button value="Login" outcome="/login.xhtml"/>
             <p:button value="Sign Up" outcome="/signup.xhtml"/>
         </p:panel>
-        
+
         <p:panel rendered="#{authenticationBean.loggedIn}">
             <h:outputText value="Welcome, #{authenticationBean.username}!"/>
-            <p:commandButton value="LogOut" action="#{authenticationBean.logout()}" update="@form"/>         
+            <p:commandButton value="LogOut" action="#{authenticationBean.logout}" update="@form" />
         </p:panel>
+
+        <!-- DataGrid for movie cards -->
+        <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
+            <p:panel styleClass="movie-card">
+                <h:panelGrid columns="1" styleClass="movie-card-content">
+                    <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
+                                   update=":mainForm:dialogContent"
+                                   oncomplete="PF('movieDialog').show()"
+                                   onerror="alert('AJAX error')">
+                        <p:graphicImage value="#{movie.imageUrl}" styleClass="movie-poster" alt="Movie Poster" />
+                    </p:commandLink>
+                </h:panelGrid>
+            </p:panel>
+        </p:dataGrid>
+
+        <!-- Dialog to display selected movie details -->
+      <!-- Dialog to display selected movie details -->
+<p:dialog id="movieDialog" widgetVar="movieDialog" header="Movie Details" modal="true" resizable="false" appendTo="@(body)">
+    <p:outputPanel id="dialogContent">
+        <!-- 
+            "details-background" sets the background image to the selected movie poster.
+            "details-overlay" provides a semi-transparent background for text.
+        -->
+        <div class="details-background"
+             style="background-image: url('#{movieViewBean.selectedMovie.imageUrl}');">
+            <div class="details-overlay">
+                <div class="font-medium text-3xl text-900 mb-3">Movie Details</div>
+                
+                <!-- The details container and detail-item structure remain the same -->
+                <h:panelGroup styleClass="details-container">
+                    <ui:repeat value="#{movieViewBean.movieDetails}" var="detail">
+                        <div class="detail-item #{detail.key == 'Description' ? 'border-top-1 border-bottom-1' : 'border-top-1'} surface-border">
+                            <span class="label text-500 font-medium">#{detail.key}</span>
+                            <span class="value text-900">
+                                <!-- Normal text -->
+                                <h:outputText value="#{detail.value}"
+                                              rendered="#{detail.key != 'Rating' and detail.key != 'Description' and detail.key != 'Genre'}" />
+                                
+                                <!-- Description text -->
+                                <h:outputText value="#{detail.value}" rendered="#{detail.key == 'Description'}" styleClass="line-height-3" />
+                                
+                                <!-- Rating & stars on the same line -->
+                                <h:panelGroup rendered="#{detail.key == 'Rating'}" layout="block" styleClass="rating-container">
+                                    <p:rating value="#{movieViewBean.selectedMovieRatingAsInt}" stars="10" cancel="false" readonly="true" />
+                                    <h:outputText value=" (#{detail.value})" styleClass="rating-value" />
+                                </h:panelGroup>
+                                
+                                <!-- Genre on the same line -->
+                                <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
+                                    <h:dataTable value="#{movieViewBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
+                                        <h:column>
+                                            <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
+                                        </h:column>
+                                    </h:dataTable>
+                                </h:panelGroup>
+                            </span>
+                        </div>
+                    </ui:repeat>
+                </h:panelGroup>
+                
+                <div class="text-center mt-4">
+                    <p:button value="Add to List" 
+                              outcome="#{authenticationBean.loggedIn ? '/addtolist.xhtml' : '/login.xhtml'}"
+                              styleClass="add-to-list-button" />
+                </div>
+            </div>
+        </div>
+    </p:outputPanel>
+</p:dialog>
+
     </h:form>
 </h:body>
 </html>

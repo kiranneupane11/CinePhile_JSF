@@ -1,0 +1,101 @@
+/* 1) Main container uses the movie poster as a background */
+.details-background {
+    /* The inline style in the XHTML sets the background-image URL */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    min-height: 400px; /* Ensures enough vertical space */
+    position: relative;
+    color: #fff; /* Default text color on a dark background */
+}
+
+/* 2) Semi-transparent overlay for readability */
+.details-overlay {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000; 
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 8px;
+}
+
+/* 3) Increase spacing between lines in detail items */
+.detail-item {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 0; /* Increased vertical spacing */
+    border-top: 1px solid #dee2e6; 
+    line-height: 1.6;  /* Good line spacing for readability */
+}
+
+/* For the final item that has top & bottom border */
+.detail-item.border-bottom-1 {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* 4) Increase spacing between label and value */
+.label {
+    width: 30%;
+    text-align: right;
+    padding-right: 1.5rem; /* More horizontal space */
+    font-weight: 500;
+}
+
+.value {
+    width: 70%;
+    display: inline-flex; /* Keep rating/genre on the same line as label */
+    align-items: center;
+}
+
+/* 5) Ensure rating stars and numeric value appear on the same line */
+.rating-container {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Slight margin to separate stars from numeric rating */
+.rating-value {
+    margin-left: 0.5rem;
+    color: #6c757d;
+}
+
+/* Genre chips on the same line */
+.genre-container {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem; 
+}
+
+.genre-table {
+    display: inline; /* Keep each genre item inline */
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.genre-item {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin-right: 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 16px;
+    color: #495057;
+}
+
+/* Additional spacing for the top heading */
+.font-medium.text-3xl {
+    margin-bottom: 1rem;
+}
+
+/* Ensure the Add to List button stands out */
+.add-to-list-button {
+    background-color: #00bcd4; /* Cyan */
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-to-list-button:hover {
+    background-color: #00acc1;
+}

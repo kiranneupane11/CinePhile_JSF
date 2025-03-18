@@ -1,0 +1,123 @@
+.movie-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.movie-card {
+    width: 200px;
+    height: 300px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure poster fills the card */
+.movie-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image fully covers the container */
+    object-position: center;
+    border-radius: 8px; /* Consistent border-radius */
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Hover effect overlay */
+.movie-card-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Show details on hover */
+.movie-card:hover .movie-card-content {
+    opacity: 1;
+}
+
+/* Additional styling for movie details */
+.details-grid {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+}
+
+.movie-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.movie-year,
+.movie-genre,
+.movie-rating,
+.movie-description {
+    display: block;
+    margin: 0.25rem 0;
+}
+
+/* Dialog label styles */
+.label-column {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.value-column {
+    text-align: left;
+}
+
+/* Centered text */
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* Button styling */
+.add-to-list-button {
+    background-color: #00bcd4; /* Cyan */
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+}
+
+.add-to-list-button:hover {
+    background-color: #00acc1;
+}
+
+.ui-input-icon-left {
+    position: relative;
+}
+.ui-input-icon-left i {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.ui-input-icon-left input {
+    padding-left: 28px; /* Space for icon */
+}

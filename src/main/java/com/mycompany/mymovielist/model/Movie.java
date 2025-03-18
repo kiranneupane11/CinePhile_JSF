@@ -32,16 +32,20 @@ public class Movie extends BaseEntity{
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+    
+    @Column(name = "image_url")
+    private String imageUrl;
 
     public Movie() {
     }
 
-    public Movie(String title, Year releaseYear, String genre, double rating, String description) {
+    public Movie(String title, Year releaseYear, String genre, double rating, String description,  String imageUrl) {
         setMovieTitle(title);
         setReleaseYear(releaseYear);
         setRating(rating);
         this.genre = genre;
         this.description = description;
+        this.imageUrl = imageUrl;
     }
     
     public double getRating(){
@@ -83,6 +87,14 @@ public class Movie extends BaseEntity{
     
     public String getDescription(){
         return description;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
     
 }

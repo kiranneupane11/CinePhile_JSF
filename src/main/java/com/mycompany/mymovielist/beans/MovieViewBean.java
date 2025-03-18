@@ -4,38 +4,88 @@
  */
 package com.mycompany.mymovielist.beans;
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped; 
+import javax.faces.view.ViewScoped; 
 import javax.inject.Inject;
 import javax.inject.Named;
 import com.mycompany.mymovielist.service.*;
 import com.mycompany.mymovielist.model.*;
 import java.util.*;
+import java.io.Serializable;
+import java.util.stream.Collectors;
+
 /**
  *
  * @author kiran
  */
 @Named
-@RequestScoped
-public class MovieViewBean {
+@ViewScoped
+public class MovieViewBean implements Serializable {
+    
+    private static final long serialVersionUID = 1L;
     
     @Inject
     private MovieService movieService;
     
+    private Movie selectedMovie;
     private List<Movie> availableMovies;
+    private List<Movie> filteredMovies;    
+    private String searchTerm;
     
     @PostConstruct
     public void init() {
-        try {
-        availableMovies = movieService.getAvailableMovies();
-    } catch (Exception e) {
-        System.err.println("Error in init: " + e.getMessage());
-        e.printStackTrace();
-        throw e;
+        this.availableMovies = movieService.getAvailableMovies();
+        this.filteredMovies = new ArrayList<>(availableMovies);
     }
+    
+    public void searchMovies() {
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            filteredMovies = new ArrayList<>(availableMovies);
+        } else {
+            String lowerSearch = searchTerm.toLowerCase();
+            filteredMovies = availableMovies.stream()
+                .filter(movie -> movie.getTitle().toLowerCase().contains(lowerSearch))
+                .collect(Collectors.toList());
+        }
+    }
+    
+    public void selectMovie(Movie movie) {
+        selectedMovie = movie;
+    }
+    
+    public Movie getSelectedMovie() {
+        return selectedMovie;
+    }
+    public void setSelectedMovie(Movie selectedMovie) {
+        this.selectedMovie = selectedMovie;
     }
     
     public List<Movie> getAvailableMovies() {
         return availableMovies;
     }
+    public List<Movie> getFilteredMovies() {
+        return filteredMovies;
+    }
+    public String getSearchTerm() {
+        return searchTerm;
+    }
+    public void setSearchTerm(String searchTerm) {
+        this.searchTerm = searchTerm;
+        searchMovies();
+    }
     
+    public int getSelectedMovieRatingAsInt() {
+        return selectedMovie != null ? (int) Math.round(selectedMovie.getRating()) : 0;
+    }
+    
+    // Add this to MovieViewBean
+public List<Map.Entry<String, Object>> getMovieDetails() {
+    if (selectedMovie == null) return Collections.emptyList();
+    List<Map.Entry<String, Object>> details = new ArrayList<>();
+    details.add(new AbstractMap.SimpleEntry<>("Title", selectedMovie.getTitle()));
+    details.add(new AbstractMap.SimpleEntry<>("Release Year", selectedMovie.getReleaseYear()));
+    details.add(new AbstractMap.SimpleEntry<>("Genre", selectedMovie.getGenre()));
+    details.add(new AbstractMap.SimpleEntry<>("Rating", selectedMovie.getRating()));
+    details.add(new AbstractMap.SimpleEntry<>("Description", selectedMovie.getDescription()));
+    return details;
+}
 }
