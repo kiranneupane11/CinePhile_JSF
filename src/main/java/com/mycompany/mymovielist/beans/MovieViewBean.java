@@ -77,7 +77,7 @@ public class MovieViewBean implements Serializable {
         return selectedMovie != null ? (int) Math.round(selectedMovie.getRating()) : 0;
     }
     
-    // Add this to MovieViewBean
+    
 public List<Map.Entry<String, Object>> getMovieDetails() {
     if (selectedMovie == null) return Collections.emptyList();
     List<Map.Entry<String, Object>> details = new ArrayList<>();

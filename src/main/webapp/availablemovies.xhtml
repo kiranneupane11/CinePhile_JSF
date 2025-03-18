@@ -8,6 +8,7 @@
     <title>Available Movies</title>
     <h:outputStylesheet library="css" name="movie-card.css" />
     <h:outputStylesheet library="css" name="movie-details.css" />
+    <h:outputScript library="js" name="overlay.js" />
 </h:head>
 <h:body>
     <h3>Top Rated Movies</h3>
@@ -34,7 +35,7 @@
                 <h:panelGrid columns="1" styleClass="movie-card-content">
                     <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
                                    update=":mainForm:dialogContent"
-                                   oncomplete="PF('movieDialog').show()"
+                                   oncomplete="setOverlayBackground('#{movie.imageUrl}'); PF('movieDialog').show();"
                                    onerror="alert('AJAX error')">
                         <p:graphicImage value="#{movie.imageUrl}" styleClass="movie-poster" alt="Movie Poster" />
                     </p:commandLink>
@@ -43,60 +44,47 @@
         </p:dataGrid>
 
         <!-- Dialog to display selected movie details -->
-      <!-- Dialog to display selected movie details -->
-<p:dialog id="movieDialog" widgetVar="movieDialog" header="Movie Details" modal="true" resizable="false" appendTo="@(body)">
-    <p:outputPanel id="dialogContent">
-        <!-- 
-            "details-background" sets the background image to the selected movie poster.
-            "details-overlay" provides a semi-transparent background for text.
-        -->
-        <div class="details-background"
-             style="background-image: url('#{movieViewBean.selectedMovie.imageUrl}');">
-            <div class="details-overlay">
-                <div class="font-medium text-3xl text-900 mb-3">Movie Details</div>
-                
-                <!-- The details container and detail-item structure remain the same -->
-                <h:panelGroup styleClass="details-container">
-                    <ui:repeat value="#{movieViewBean.movieDetails}" var="detail">
-                        <div class="detail-item #{detail.key == 'Description' ? 'border-top-1 border-bottom-1' : 'border-top-1'} surface-border">
-                            <span class="label text-500 font-medium">#{detail.key}</span>
-                            <span class="value text-900">
-                                <!-- Normal text -->
-                                <h:outputText value="#{detail.value}"
-                                              rendered="#{detail.key != 'Rating' and detail.key != 'Description' and detail.key != 'Genre'}" />
-                                
-                                <!-- Description text -->
-                                <h:outputText value="#{detail.value}" rendered="#{detail.key == 'Description'}" styleClass="line-height-3" />
-                                
-                                <!-- Rating & stars on the same line -->
-                                <h:panelGroup rendered="#{detail.key == 'Rating'}" layout="block" styleClass="rating-container">
-                                    <p:rating value="#{movieViewBean.selectedMovieRatingAsInt}" stars="10" cancel="false" readonly="true" />
-                                    <h:outputText value=" (#{detail.value})" styleClass="rating-value" />
-                                </h:panelGroup>
-                                
-                                <!-- Genre on the same line -->
-                                <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
-                                    <h:dataTable value="#{movieViewBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
-                                        <h:column>
-                                            <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
-                                        </h:column>
-                                    </h:dataTable>
-                                </h:panelGroup>
-                            </span>
-                        </div>
-                    </ui:repeat>
-                </h:panelGroup>
-                
-                <div class="text-center mt-4">
-                    <p:button value="Add to List" 
-                              outcome="#{authenticationBean.loggedIn ? '/addtolist.xhtml' : '/login.xhtml'}"
-                              styleClass="add-to-list-button" />
+        <p:dialog id="movieDialog" 
+                  widgetVar="movieDialog" 
+                  header="Movie Details" 
+                  modal="true" 
+                  resizable="false" 
+                  appendTo="@(body)"
+                  onHide="$('.ui-widget-overlay').css('background','');">
+            <p:outputPanel id="dialogContent">
+                <div class="surface-section">
+                    <div class="font-medium text-3xl text-900 mb-3">Movie Details</div>
+                    <h:panelGroup styleClass="details-container">
+                        <ui:repeat value="#{movieViewBean.movieDetails}" var="detail">
+                            <div class="detail-item #{detail.key == 'Description' ? 'border-top-1 border-bottom-1' : 'border-top-1'} surface-border">
+                                <span class="label text-500 font-medium">#{detail.key}</span>
+                                <span class="value text-900">
+                                    <h:outputText value="#{detail.value}"
+                                                  rendered="#{detail.key != 'Rating' and detail.key != 'Description' and detail.key != 'Genre'}" />
+                                    <h:outputText value="#{detail.value}" rendered="#{detail.key == 'Description'}" styleClass="line-height-3" />
+                                    <h:panelGroup rendered="#{detail.key == 'Rating'}" layout="block" styleClass="rating-container">
+                                        <p:rating value="#{movieViewBean.selectedMovieRatingAsInt}" stars="10" cancel="false" readonly="true" />
+                                        <h:outputText value=" (#{detail.value})" styleClass="rating-value" />
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
+                                        <h:dataTable value="#{movieViewBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
+                                            <h:column>
+                                                <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
+                                            </h:column>
+                                        </h:dataTable>
+                                    </h:panelGroup>
+                                </span>
+                            </div>
+                        </ui:repeat>
+                    </h:panelGroup>
+                    <div class="text-center mt-4">
+                        <p:button value="Add to List" 
+                                  outcome="#{authenticationBean.loggedIn ? '/addtolist.xhtml' : '/login.xhtml'}"
+                                  styleClass="add-to-list-button" />
+                    </div>
                 </div>
-            </div>
-        </div>
-    </p:outputPanel>
-</p:dialog>
-
+            </p:outputPanel>
+        </p:dialog>
     </h:form>
 </h:body>
 </html>
