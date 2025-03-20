@@ -25,7 +25,7 @@ public class UserMovieRatingDTO {
         this.title = movie.getTitle();
         this.releaseYear = movie.getReleaseYear();
         this.genre = movie.getGenre();
-        this.rating = (userMovie != null) ? userMovie.getRating() : null;
+        this.rating = userMovie.getRating();
         this.status = userMovie.getStatus();
         this.description = movie.getDescription();
     }
@@ -33,7 +33,7 @@ public class UserMovieRatingDTO {
     public Long getMovieID() { return movieID; }
     public String getTitle() { return title; }
     public String getGenre() { return genre; }
-    public String getRating() { return (rating != null) ? String.valueOf(rating) : "Not Rated"; }
+    public Double getRating() { return (rating != null) ? rating : 0; }
     public UserMovieRating.Status getStatus() { return status; }
     public Year getReleaseYear() {return releaseYear; }
     public String getDescription(){return description; }

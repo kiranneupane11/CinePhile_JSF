@@ -6,47 +6,65 @@ package com.mycompany.mymovielist.service;
 
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.repository.*;
-
 import java.util.List;
 import java.util.Optional;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 
 /**
  *
  * @author kiran
  */
+@Named
+@ApplicationScoped
 public class PlaylistService {
-    private final UserPlaylistRepository userPlaylistRepository;
-    private final UserPlaylistMoviesRepository userPlayListMoviesRepository;
-    private final UserMovieRatingRepository userMovieRepository;
-    private final MovieRepository movieRepository;
-
+    private UserPlaylistRepository userPlaylistRepository;
+    private UserPlaylistMoviesRepository userPlayListMoviesRepository;
+    private UserMovieRatingRepository userMovieRepository;
+    
+    @Inject
     public PlaylistService(UserPlaylistRepository userPlaylistRepository, 
                            UserPlaylistMoviesRepository userPlayListMoviesRepository,
-                           UserMovieRatingRepository userMovieRepository,
-                           MovieRepository movieRepository) {
+                           UserMovieRatingRepository userMovieRepository
+                           ){
         this.userPlaylistRepository = userPlaylistRepository;
         this.userPlayListMoviesRepository = userPlayListMoviesRepository;
         this.userMovieRepository = userMovieRepository;
-        this.movieRepository = movieRepository;
+    }
+    
+    protected PlaylistService() {
+    }
+    
+    public void createList(User user, String listName) {
+        if (!listExists(user, listName)) {
+            UserPlaylist playlist = new UserPlaylist(listName, user);
+            userPlaylistRepository.add(playlist.getId(), playlist);
+        }
     }
 
-    public boolean addMovieToList(User user, UserMovieRating userMovieRating, UserPlaylist userPlaylist) {
-        Optional<Movie> movieOpt = movieRepository.get(userMovieRating.getMovieID().getId());
-        if (!movieOpt.isPresent()) return false;
+    public boolean addMovieToList(User user, UserMovieRating userMovieRating, String listName) {
 
-        Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(userPlaylist);
+        Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(user, listName);
+        UserPlaylist playlist;
         if (existingListOpt.isPresent()) {
-            userPlaylist = existingListOpt.get();
+            playlist = existingListOpt.get();
         } else {
-            userPlaylist = new UserPlaylist(userPlaylist.getListName(), user);
-            userPlaylistRepository.add(userPlaylist.getId(), userPlaylist);
+            playlist = new UserPlaylist(listName, user);
+            userPlaylistRepository.add(playlist.getId(), playlist);
         }
 
-        UserPlaylistMovies userPlaylistMovie = new UserPlaylistMovies(userPlaylist, userMovieRating.getMovieID());
+        UserPlaylistMovies userPlaylistMovie = new UserPlaylistMovies(playlist, userMovieRating.getMovieID());
         userPlayListMoviesRepository.add(userPlaylistMovie.getId(), userPlaylistMovie);
         userMovieRepository.add(userMovieRating.getId(), userMovieRating);
 
         return true;
+    }
+    
+    public boolean listExists(User user, String listName) {
+        Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(user, listName);
+        return existingListOpt.isPresent();
     }
 
     public List<UserPlaylist> getUserLists(User user) {
@@ -57,7 +75,7 @@ public class PlaylistService {
         return userPlaylistRepository.getListsByUserName(username);
     }
 
-    public List<UserMovieRatingDTO> getMoviesInList(UserPlaylist playlist, User user) {
+    public List<UserMovieRatingDTO> viewList(UserPlaylist playlist, User user) {
         return userPlayListMoviesRepository.getMoviesFromPlaylist(playlist, user);
     }
 
@@ -65,4 +83,10 @@ public class PlaylistService {
         return userPlaylistRepository.get(playlistId)
                 .filter(playlist -> playlist.getUser().equals(user));
     }
+    
+    public void deleteList(UserPlaylist playlist) {
+        userPlayListMoviesRepository.removeByPlaylist(playlist);
+        userPlaylistRepository.remove(playlist.getId());
+    }
+    
 }

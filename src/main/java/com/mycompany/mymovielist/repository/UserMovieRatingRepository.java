@@ -6,12 +6,18 @@ package com.mycompany.mymovielist.repository;
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  *
  * @author kiran
  */
+@Named
+@ApplicationScoped
 public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRating, Long> {
+    @Inject
     public UserMovieRatingRepository() {
         super(UserMovieRating.class, EMFProvider.getEntityManager());
     }

@@ -7,13 +7,19 @@ package com.mycompany.mymovielist.repository;
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.persistence.EntityManager;
 
 /**
  *
  * @author kiran
  */
+@Named
+@ApplicationScoped
 public class UserRepository extends DatabaseRepository<User, Long> {
+    @Inject
     public UserRepository() {
         super(User.class, EMFProvider.getEntityManager());
     }

@@ -7,12 +7,18 @@ package com.mycompany.mymovielist.repository;
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  *
  * @author kiran
  */
+@Named
+@ApplicationScoped
 public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylistMovies, Long> {
+    @Inject
     public UserPlaylistMoviesRepository() {
         super(UserPlaylistMovies.class, EMFProvider.getEntityManager());
     }
@@ -28,6 +34,12 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
             .setParameter("playlistIdParam", playlist.getId())
             .setParameter("userIdParam", user)
             .getResultList();
+    }
+    
+    public void removeByPlaylist(UserPlaylist playlist) {
+        entityManager.createQuery("DELETE FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist")
+            .setParameter("playlist", playlist)
+            .executeUpdate();
     }
 
 } 

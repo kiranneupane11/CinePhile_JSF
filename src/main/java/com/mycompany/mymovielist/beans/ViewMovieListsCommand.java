@@ -42,7 +42,7 @@ public class ViewMovieListsCommand implements Command {
             return;
         }
         UserPlaylist playlist = playlistOpt.get();
-        List<UserMovieRatingDTO> movies = playlistService.getMoviesInList(playlist, loggedInUser);
+        List<UserMovieRatingDTO> movies = playlistService.viewList(playlist, loggedInUser);
         
         if (movies.isEmpty()) {
             io.displayMessage("No movies found in this list.");
