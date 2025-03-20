@@ -32,14 +32,15 @@
         <!-- DataGrid for movie cards -->
         <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
             <p:panel styleClass="movie-card">
-                <h:panelGrid columns="1" styleClass="movie-card-content">
-                    <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
-                                   update=":mainForm:dialogContent"
-                                   oncomplete="setOverlayBackground('#{movie.imageUrl}'); PF('movieDialog').show();"
-                                   onerror="alert('AJAX error')">
-                        <p:graphicImage value="#{movie.imageUrl}" styleClass="movie-poster" alt="Movie Poster" />
-                    </p:commandLink>
-                </h:panelGrid>
+                <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
+                               update=":mainForm:dialogContent"
+                               oncomplete="setOverlayBackground('#{movie.imageUrl}'); PF('movieDialog').show();"
+                               onerror="alert('AJAX error')">
+                    <p:graphicImage value="#{movie.imageUrl}" styleClass="movie-poster" alt="Movie Poster" />
+                    <div class="movie-card-content">
+                        <h:outputText value="#{movie.title}" styleClass="movie-title" />
+                    </div>
+                </p:commandLink>
             </p:panel>
         </p:dataGrid>
 
