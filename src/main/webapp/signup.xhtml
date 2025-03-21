@@ -4,33 +4,29 @@
       xmlns:p="http://primefaces.org/ui">
 <h:head>
     <title>Sign Up</title>
-    <h:outputStylesheet library="css" name="login.css" />
 </h:head>
-    <h:body>
-        <h:form>
-        <div class="card">
-        <h5>Sign Up</h5>
-        <div class="field grid">
-            <p:outputLabel for="email" styleClass="col-fixed" style="width:100px" value="email"/>
-            <div class="col">
-                <p:inputText id="email" value="#{authenticationBean.email}"/>
-            </div>
-        </div>
-        <div class="field grid">
-            <p:outputLabel for="username" styleClass="col-fixed" style="width:100px" value="Username"/>
-            <div class="col">
-                <p:inputText id="username" value="#{authenticationBean.username}"/>
-            </div>
-        </div>
-        <div class="field grid">
-            <p:outputLabel for="password" styleClass="col-fixed" style="width:100px" value="Password"/>
-            <div class="col">
-                <p:inputText id="password" value="#{authenticationBean.password}"/>
-            </div>
-        </div>
-        <p:commandButton value="Signup" action="#{authenticationBean.signup()}" update="@form" ajax="false" />
-            <h:outputText value="#{authenticationBean.message}" styleClass="message"/>
-        </div>
-    </h:form>
-    </h:body>
+<h:body>
+    <!-- Outer container for centering -->
+    <h:panelGroup layout="block" styleClass="ui-g" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <!-- Inner container for responsive width -->
+        <h:panelGroup layout="block" styleClass="ui-g-12 ui-md-6 ui-lg-4">
+            <!-- Panel for card-like structure -->
+            <p:panel header="Sign Up" styleClass="signup-panel">
+                <h:form>
+                    <p:panelGrid columns="2" styleClass="ui-panelgrid-blank">
+                        <p:outputLabel for="email" value="Email"/>
+                        <p:inputText id="email" value="#{authenticationBean.email}"/>
+                        <p:outputLabel for="username" value="Username"/>
+                        <p:inputText id="username" value="#{authenticationBean.username}"/>
+                        <p:outputLabel for="password" value="Password"/>
+                        <p:password id="password" value="#{authenticationBean.password}"/>
+                        <p:outputLabel value=""/>
+                        <p:commandButton value="Sign Up" icon="pi pi-user-plus" action="#{authenticationBean.signup()}" update="@form" ajax="false" />
+                    </p:panelGrid>
+                    <h:outputText value="#{authenticationBean.message}"/>
+                </h:form>
+            </p:panel>
+        </h:panelGroup>
+    </h:panelGroup>
+</h:body>
 </html>

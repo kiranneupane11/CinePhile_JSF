@@ -26,6 +26,9 @@ public class MovieViewBean implements Serializable {
     @Inject
     private MovieService movieService;
     
+    @Inject
+    private PlaylistBean playlistBean;
+    
     private Movie selectedMovie;
     private List<Movie> availableMovies;
     private List<Movie> filteredMovies;    
@@ -77,15 +80,23 @@ public class MovieViewBean implements Serializable {
         return selectedMovie != null ? (int) Math.round(selectedMovie.getRating()) : 0;
     }
     
+    public String navigateToAddToList() {
+        if (selectedMovie != null) {
+            playlistBean.setSelectedMovie(selectedMovie);
+            return "addtolist.xhtml?faces-redirect=true";
+        }
+        return null; 
+    }
     
-public List<Map.Entry<String, Object>> getMovieDetails() {
-    if (selectedMovie == null) return Collections.emptyList();
-    List<Map.Entry<String, Object>> details = new ArrayList<>();
-    details.add(new AbstractMap.SimpleEntry<>("Title", selectedMovie.getTitle()));
-    details.add(new AbstractMap.SimpleEntry<>("Release Year", selectedMovie.getReleaseYear()));
-    details.add(new AbstractMap.SimpleEntry<>("Genre", selectedMovie.getGenre()));
-    details.add(new AbstractMap.SimpleEntry<>("Rating", selectedMovie.getRating()));
-    details.add(new AbstractMap.SimpleEntry<>("Description", selectedMovie.getDescription()));
-    return details;
-}
+    
+    public List<Map.Entry<String, Object>> getMovieDetails() {
+        if (selectedMovie == null) return Collections.emptyList();
+        List<Map.Entry<String, Object>> details = new ArrayList<>();
+        details.add(new AbstractMap.SimpleEntry<>("Title", selectedMovie.getTitle()));
+        details.add(new AbstractMap.SimpleEntry<>("Release Year", selectedMovie.getReleaseYear()));
+        details.add(new AbstractMap.SimpleEntry<>("Genre", selectedMovie.getGenre()));
+        details.add(new AbstractMap.SimpleEntry<>("Rating", selectedMovie.getRating()));
+        details.add(new AbstractMap.SimpleEntry<>("Description", selectedMovie.getDescription()));
+        return details;
+    }
 }

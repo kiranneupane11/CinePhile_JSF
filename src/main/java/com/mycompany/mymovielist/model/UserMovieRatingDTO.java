@@ -37,4 +37,5 @@ public class UserMovieRatingDTO {
     public UserMovieRating.Status getStatus() { return status; }
     public Year getReleaseYear() {return releaseYear; }
     public String getDescription(){return description; }
+    public int getRatingAsInt() {return (int) Math.round(rating);}
 }

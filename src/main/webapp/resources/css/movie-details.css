@@ -99,3 +99,13 @@
 .add-to-list-button:hover {
     background-color: #00acc1;
 }
+
+.menu-bar {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    width: 220px; 
+    /* adjust as needed */
+    padding: 10px;
+    border-radius: 4px;
+}
+

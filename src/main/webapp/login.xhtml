@@ -4,27 +4,25 @@
       xmlns:p="http://primefaces.org/ui">
 <h:head>
     <title>Login</title>
-    <h:outputStylesheet library="css" name="login.css" />
 </h:head>
 <h:body>
-    <h:form>
-        <div class="card">
-        <h5>Login</h5>
-        <div class="field grid">
-            <p:outputLabel for="usernameoremail" styleClass="col-fixed" style="width:100px" value="Username or Email"/>
-            <div class="col">
-                <p:inputText id="usernameoremail" value="#{authenticationBean.usernameOrEmail}"/>
-            </div>
-        </div>
-        <div class="field grid">
-            <p:outputLabel for="password" styleClass="col-fixed" style="width:100px" value="Password"/>
-            <div class="col">
-                <p:inputText id="password" value="#{authenticationBean.password}"/>
-            </div>
-        </div>
-            <p:commandButton value="Login" action="#{authenticationBean.login()}" update="@form" ajax="false" />
-            <h:outputText value="#{authenticationBean.message}" styleClass="message"/>
-        </div>
-    </h:form>
+    <h:panelGroup layout="block" styleClass="ui-g" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <h:panelGroup layout="block" styleClass="ui-g-12 ui-md-6 ui-lg-4">
+            <p:panel header="Login" styleClass="login-panel">
+                <h:form>
+                    <p:panelGrid columns="2" styleClass="ui-panelgrid-blank">
+                        <p:outputLabel for="usernameoremail" value="Username or Email"/>
+                        <p:inputText id="usernameoremail" value="#{authenticationBean.usernameOrEmail}"/>
+                        <p:outputLabel for="password" value="Password"/>
+                        <p:password id="password" value="#{authenticationBean.password}"/>
+                        <p:outputLabel value=""/>
+                        <p:commandButton value="Login" icon="pi pi-sign-in" action="#{authenticationBean.login()}" update="@form" ajax="false" />
+                    </p:panelGrid>
+                    <h:outputText value="#{authenticationBean.message}" style="display: block; margin-top: 10px;"/>
+                    <h:link outcome="signup">Don't have an account? Register Now!</h:link>
+                </h:form>
+            </p:panel>
+        </h:panelGroup>
+    </h:panelGroup>
 </h:body>
 </html>

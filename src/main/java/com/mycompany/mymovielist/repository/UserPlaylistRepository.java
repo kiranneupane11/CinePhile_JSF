@@ -39,12 +39,12 @@ public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Lon
     }
     
     public Optional<UserPlaylist> findByUserIdAndListName(User user, String listName) {
-    return entityManager.createQuery(
-        "SELECT ml FROM UserPlaylist ml WHERE ml.user = :userId AND ml.listName = :listName",
-        UserPlaylist.class)
-        .setParameter("userId", user.getId())
-        .setParameter("listName", listName)
-        .getResultStream()
-        .findFirst();
+        List<UserPlaylist> results = entityManager.createQuery(
+            "SELECT ml FROM UserPlaylist ml WHERE ml.user = :user AND ml.listName = :listName",
+            UserPlaylist.class)
+            .setParameter("user", user)
+            .setParameter("listName", listName)
+            .getResultList();
+        return results.stream().findFirst();
     }
 }

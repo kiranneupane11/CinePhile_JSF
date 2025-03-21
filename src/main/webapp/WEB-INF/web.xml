@@ -27,6 +27,11 @@
         <exception-type>javax.faces.application.ViewExpiredException</exception-type>
         <location>/availablemovies.xhtml</location>
     </error-page>
+    
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>luna-blue</param-value> <!-- Or "saga", "vela", etc. -->
+    </context-param>
 
 </web-app>
 

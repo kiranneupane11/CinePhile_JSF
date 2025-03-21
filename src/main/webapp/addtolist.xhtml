@@ -3,54 +3,49 @@
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
-    
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
     <h:head>
-        <title>Playlist Manager</title>
+        <title>Add to List</title>
+        <h:outputStylesheet library="css" name="movie-details.css" />
+        <link rel="stylesheet" type="text/css" href="#{resource['primefaces/primefaces.css']}" />
     </h:head>
     <h:body>
-        <p:graphicImage name="cinephile-logo.svg" library="logos" width="150" style="margin-bottom: 10px;" />
-        
-        <h:form>
-            <p:panelMenu id="playlistMenu" style="width: 200px;">
-                <p:submenu label="Playlists">
-                    <p:menuitem value="Create New Playlist" 
-                                icon="pi pi-plus"
-                                onclick="PF('createPlaylistDialog').show()" />
-                                
-                    <c:forEach items="#{playlistBean.userPlaylist}" var="playlist">
-                        <p:submenu label="#{playlist.listName}">
-                            <p:menuitem value="View"
-                                        icon="pi pi-folder"
-                                        actionListener="#{playlistBean.selectPlaylist(playlist)}"
-                                        update="movieListPanel" />
-                            <p:menuitem value="Delete"
-                                        icon="pi pi-trash"
-                                        action="#{playlistBean.deleteList(playlist)}"
-                                        update=":playlistMenu movieListPanel" />
-                        </p:submenu>
-                    </c:forEach>
-                </p:submenu>
-            </p:panelMenu>
+        <h:form id="mainForm">
+            <p:graphicImage name="logo.svg" library="logos" width="150" style="margin-bottom: 10px;" />
             
-            <!-- Right column: Movie List Panel -->
-            <h:panelGroup id="movieListPanel">
+            <p:megaMenu id="playlistMenu" orientation="vertical" styleClass="menu-bar">
+                <f:facet name="start">
+                    <p:graphicImage name="cinephile-logo.svg" library="logos" width="150" />
+                </f:facet><p:submenu label="Watching" icon="pi pi-fw pi-play">
+                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Watching')}" update="movieListPanel" />
+                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Watching')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
+                </p:submenu>
+                <p:submenu label="Watched" icon="pi pi-fw pi-check">
+                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Watched')}" update="movieListPanel" />
+                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Watched')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
+                </p:submenu>
+                <p:submenu label="Plan to Watch" icon="pi pi-fw pi-clock">
+                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Plan to Watch')}" update="movieListPanel" />
+                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Plan to Watch')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
+                </p:submenu>
+                <p:submenu label="Dropped" icon="pi pi-fw pi-times">
+                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Dropped')}" update="movieListPanel" />
+                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Dropped')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
+                </p:submenu>
+            </p:megaMenu>
+
+            <!-- Movie List Panel -->
+            <h:panelGroup id="movieListPanel" layout="block">
                 <h:panelGroup rendered="#{playlistBean.selectedPlaylist != null}">
-                    <p:dataTable value="#{playlistBean.selectedPlaylistMovies}" var="usermovie">
+                    <p:dataTable value="#{playlistBean.selectedPlaylistMovies}" var="movie">
                         <p:column headerText="Movie Title">
-                            <h:outputText value="#{usermovie.title}" />
+                            <h:outputText value="#{movie.title}" />
                         </p:column>
                         <p:column headerText="Rating">
-                            <h:panelGroup layout="block" styleClass="rating-container">
-                                <p:rating value="#{playlistBean.getMovieRatingAsInt(usermovie)}" 
-                                          stars="10" cancel="false" readonly="true" />
-                                <h:outputText value=" (#{usermovie.rating != null ? usermovie.rating : 'N/A'})" 
-                                              styleClass="rating-value" />
-                            </h:panelGroup>
+                            <p:rating value="#{movie.ratingAsInt}" stars="10" readonly="true" />
                         </p:column>
                         <p:column headerText="Status">
-                            <h:outputText value="#{usermovie.status != null ? usermovie.status : 'N/A'}" />
+                            <h:outputText value="#{movie.status}" />
                         </p:column>
                     </p:dataTable>
                 </h:panelGroup>
@@ -58,40 +53,22 @@
                     <h:outputText value="Select a playlist to view its movies." />
                 </h:panelGroup>
             </h:panelGroup>
-            
-            <p:remoteCommand name="setSelected" 
-                             actionListener="#{playlistBean.setSelectedPlaylist}"
-                             process="@this"
-                             update="@none">
-                <f:param name="playlistName" value="" />
-            </p:remoteCommand>
+
+            <!-- Dialog for adding movie -->
+            <p:dialog id="addToListDialog" widgetVar="addToListDialog" header="Add Movie to List" modal="true" resizable="false" appendTo="@(body)" visible="true">
+                <h:panelGrid columns="2" style="margin-bottom: 10px;">
+                    <h:outputText value="Rating:" />
+                    <p:rating value="#{playlistBean.ratingAsInt}" stars="10" cancel="false" />
+                    <h:outputText value="Status:" />
+                    <p:selectOneMenu value="#{playlistBean.status}">
+                        <f:selectItem itemLabel="Watching" itemValue="Watching" />
+                        <f:selectItem itemLabel="Watched" itemValue="Watched" />
+                        <f:selectItem itemLabel="Plan to Watch" itemValue="Plan_to_Watch" />
+                        <f:selectItem itemLabel="Dropped" itemValue="Dropped" />
+                    </p:selectOneMenu>
+                </h:panelGrid>
+                <p:commandButton value="Add" action="#{playlistBean.addToList}" oncomplete="PF('addToListDialog').hide()" />
+            </p:dialog>
         </h:form>
-        
-        <p:dialog id="addToListDialog" 
-          widgetVar="addToListDialog" 
-          header="Add Movie to List" 
-          modal="true" 
-          resizable="false" 
-          appendTo="@(body)">
-    <h:form>
-        <h:panelGrid columns="2" style="margin-bottom: 10px;">
-            <h:outputText value="Rating:" />
-            <h:panelGroup layout="block" styleClass="rating-container">
-                <p:rating value="#{playlistBean.ratingAsInt}" stars="10" cancel="false" />
-                <h:outputText value=" (#{playlistBean.rating})" styleClass="rating-value" />
-            </h:panelGroup>
-            <h:outputText value="Status:" />
-            <p:selectOneMenu value="#{playlistBean.status}">
-                <f:selectItem itemLabel="Watching" itemValue="Watching" />
-                <f:selectItem itemLabel="Watched" itemValue="Watched" />
-                <f:selectItem itemLabel="Plan to Watch" itemValue="Plan_To_Watch" />
-                <f:selectItem itemLabel="Dropped" itemValue="Dropped" />
-            </p:selectOneMenu>
-        </h:panelGrid>
-        <p:commandButton value="Add" 
-                         action="#{playlistBean.addToList}" 
-                         oncomplete="PF('addToListDialog').hide()" />
-    </h:form>
-</p:dialog>
     </h:body>
 </html>

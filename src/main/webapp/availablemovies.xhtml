@@ -11,23 +11,38 @@
     <h:outputScript library="js" name="overlay.js" />
 </h:head>
 <h:body>
-    <h3>Top Rated Movies</h3>
+    <p:graphicImage name="logo.svg" library="logos" width="150" style="margin-bottom: 10px;" />
     <h:form id="mainForm">
-        <!-- Search bar -->
-        <p:inputText id="searchTerm" value="#{movieViewBean.searchTerm}" placeholder="Search movies, lists...">
-            <f:ajax event="keyup" render="movieGrid" listener="#{movieViewBean.searchMovies}" />
-        </p:inputText>
-        <p:commandButton value="Search" action="#{movieViewBean.searchMovies}" update="movieGrid" />
-
-        <p:panel rendered="#{not authenticationBean.loggedIn}">
-            <p:button value="Login" outcome="/login.xhtml"/>
-            <p:button value="Sign Up" outcome="/signup.xhtml"/>
-        </p:panel>
-
-        <p:panel rendered="#{authenticationBean.loggedIn}">
-            <h:outputText value="Welcome, #{authenticationBean.username}!"/>
-            <p:commandButton value="LogOut" action="#{authenticationBean.logout}" update="@form" />
-        </p:panel>
+        <p:menubar style="width: 100%;">
+            <!-- Left facet: Cinephile Logo -->
+            <f:facet name="start">
+                <p:graphicImage name="logo.svg" library="logos" alt="Cinephile Logo" height="50" />
+            </f:facet>
+            <!-- Right facet: Search bar and Login/Logout -->
+            <f:facet name="end">
+                <h:panelGroup layout="block" style="display: flex; align-items: center; width: 100%;">
+                    <!-- Search bar takes all available space -->
+                    <div style="flex-grow: 1; margin-right: 10px;">
+                        <p:inputText id="searchTerm" 
+                                     value="#{movieViewBean.searchTerm}" 
+                                     placeholder="Search movies, lists..." 
+                                     style="width: 100%;">
+                            <f:ajax event="keyup" render="movieGrid" listener="#{movieViewBean.searchMovies}" />
+                        </p:inputText>
+                    </div>
+                    <!-- Display login/signup buttons if not logged in; else logout button -->
+                    <div>
+                        <p:panel rendered="#{not authenticationBean.loggedIn}" style="border: none; padding: 0;">
+                            <p:button value="Login" outcome="/login.xhtml" styleClass="ui-button-info" />
+                            <p:button value="Sign Up" outcome="/signup.xhtml" styleClass="ui-button-success" />
+                        </p:panel>
+                        <p:panel rendered="#{authenticationBean.loggedIn}" style="border: none; padding: 0;">
+                            <p:commandButton value="Logout" action="#{authenticationBean.logout}" update="@form" styleClass="ui-button-danger" />
+                        </p:panel>
+                    </div>
+                </h:panelGroup>
+            </f:facet>
+        </p:menubar>
 
         <!-- DataGrid for movie cards -->
         <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
@@ -79,8 +94,13 @@
                         </ui:repeat>
                     </h:panelGroup>
                     <div class="text-center mt-4">
-                        <p:button value="Add to List" 
-                                  outcome="#{authenticationBean.loggedIn ? '/addtolist.xhtml' : '/login.xhtml'}"
+                        <p:commandButton value="Add to List" 
+                                         action="#{movieViewBean.navigateToAddToList}"
+                                         rendered="#{authenticationBean.loggedIn}"
+                                         styleClass="add-to-list-button" />
+                        <p:button value="Login to Add" 
+                                  outcome="/login.xhtml"
+                                  rendered="#{not authenticationBean.loggedIn}"
                                   styleClass="add-to-list-button" />
                     </div>
                 </div>

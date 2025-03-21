@@ -92,7 +92,6 @@ public class AuthenticationBean implements Serializable {
             } else{
                 message = "Invalid username or password.";
             }
-        // Put the message into flash scope so it survives the redirect
         FacesContext.getCurrentInstance().getExternalContext().getFlash().put("message", message);
 
     return userOpt.isPresent() ? "loginSuccess" : "loginFailure";
