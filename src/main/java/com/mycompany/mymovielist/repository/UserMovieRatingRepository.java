@@ -9,6 +9,7 @@ import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.NoResultException;
 
 /**
  *
@@ -28,5 +29,30 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
         Object[].class)
         .setParameter("userId", usermovie.getUserID())
         .getResultList();
+    }
+    
+    public UserMovieRating findByMovieAndUser(Movie movie, User user) {
+        try {
+            return entityManager.createQuery(
+                "SELECT umr FROM UserMovieRating umr " +
+                "WHERE umr.movie = :movie AND umr.user = :user", UserMovieRating.class)
+                .setParameter("movie", movie)
+                .setParameter("user", user)
+                .getSingleResult();
+        } catch (NoResultException e) {
+            return null; 
+        }
+    }
+
+    public void persist(UserMovieRating userMovieRating) {
+        entityManager.getTransaction().begin();
+        entityManager.persist(userMovieRating);
+        entityManager.getTransaction().commit();
+    }
+
+    public void merge(UserMovieRating userMovieRating) {
+        entityManager.getTransaction().begin();
+        entityManager.merge(userMovieRating);
+        entityManager.getTransaction().commit();
     }
 }

@@ -25,15 +25,21 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
     
     public List<UserMovieRatingDTO> getMoviesFromPlaylist(UserPlaylist playlist, User user) {
         return entityManager.createQuery(
-            "SELECT new com.mycompany.mymovielist.model.UserMovieRatingDTO(m, umr) " +
+            "SELECT new com.mycompany.mymovielist.model.UserMovieRatingDTO(upm.movie, " +
+            "(SELECT umr FROM UserMovieRating umr WHERE umr.movie = upm.movie AND umr.user = :userIdParam)) " +
             "FROM UserPlaylistMovies upm " +
-            "JOIN upm.userPlaylist pl " +
-            "JOIN upm.movie m " +
-            "LEFT JOIN UserMovieRating umr ON umr.movie = m AND umr.user = :userIdParam " +
-            "WHERE pl.id = :playlistIdParam", UserMovieRatingDTO.class)
+            "WHERE upm.userPlaylist.id = :playlistIdParam", UserMovieRatingDTO.class)
             .setParameter("playlistIdParam", playlist.getId())
             .setParameter("userIdParam", user)
             .getResultList();
+    }
+    
+    public void removeMovieFromPlaylist(UserPlaylist playlist, Movie movie) {
+        entityManager.createQuery(
+            "DELETE FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie")
+            .setParameter("playlist", playlist)
+            .setParameter("movie", movie)
+            .executeUpdate();
     }
     
     public void removeByPlaylist(UserPlaylist playlist) {

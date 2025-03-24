@@ -18,6 +18,7 @@ public class UserMovieRatingDTO {
     private Long movieID;
     private Year releaseYear;
     private String description;
+    private String imageUrl;
     
 
     public UserMovieRatingDTO(Movie movie, UserMovieRating userMovie) {
@@ -25,17 +26,19 @@ public class UserMovieRatingDTO {
         this.title = movie.getTitle();
         this.releaseYear = movie.getReleaseYear();
         this.genre = movie.getGenre();
-        this.rating = userMovie.getRating();
-        this.status = userMovie.getStatus();
+        this.rating = (userMovie != null) ? userMovie.getRating() : null;
+        this.status = (userMovie != null) ? userMovie.getStatus() : null;
         this.description = movie.getDescription();
+        this.imageUrl = movie.getImageUrl();
     }
 
     public Long getMovieID() { return movieID; }
     public String getTitle() { return title; }
     public String getGenre() { return genre; }
-    public Double getRating() { return (rating != null) ? rating : 0; }
+    public Double getRating() { return (rating != null) ? rating : 0.0; }
     public UserMovieRating.Status getStatus() { return status; }
     public Year getReleaseYear() {return releaseYear; }
     public String getDescription(){return description; }
-    public int getRatingAsInt() {return (int) Math.round(rating);}
+    public int getRatingAsInt() {return (rating != null) ? (int) Math.round(rating) : 0;}
+    public String getImageUrl() {return imageUrl;}
 }
