@@ -1,74 +1,114 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
-    <h:head>
-        <title>Add to List</title>
-        <h:outputStylesheet library="css" name="movie-details.css" />
-        <link rel="stylesheet" type="text/css" href="#{resource['primefaces/primefaces.css']}" />
-    </h:head>
-    <h:body>
-        <h:form id="mainForm">
-            <p:graphicImage name="logo.svg" library="logos" width="150" style="margin-bottom: 10px;" />
-            
-            <p:megaMenu id="playlistMenu" orientation="vertical" styleClass="menu-bar">
-                <f:facet name="start">
-                    <p:graphicImage name="cinephile-logo.svg" library="logos" width="150" />
-                </f:facet><p:submenu label="Watching" icon="pi pi-fw pi-play">
-                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Watching')}" update="movieListPanel" />
-                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Watching')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
-                </p:submenu>
-                <p:submenu label="Watched" icon="pi pi-fw pi-check">
-                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Watched')}" update="movieListPanel" />
-                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Watched')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
-                </p:submenu>
-                <p:submenu label="Plan to Watch" icon="pi pi-fw pi-clock">
-                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Plan to Watch')}" update="movieListPanel" />
-                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Plan to Watch')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
-                </p:submenu>
-                <p:submenu label="Dropped" icon="pi pi-fw pi-times">
-                    <p:menuitem value="View" icon="pi pi-folder" action="#{playlistBean.selectPlaylist('Dropped')}" update="movieListPanel" />
-                    <p:menuitem value="Delete" icon="pi pi-trash" action="#{playlistBean.deleteList('Dropped')}" update=":mainForm:playlistMenu :mainForm:movieListPanel" />
-                </p:submenu>
-            </p:megaMenu>
-
-            <!-- Movie List Panel -->
-            <h:panelGroup id="movieListPanel" layout="block">
-                <h:panelGroup rendered="#{playlistBean.selectedPlaylist != null}">
-                    <p:dataTable value="#{playlistBean.selectedPlaylistMovies}" var="movie">
-                        <p:column headerText="Movie Title">
-                            <h:outputText value="#{movie.title}" />
-                        </p:column>
-                        <p:column headerText="Rating">
-                            <p:rating value="#{movie.ratingAsInt}" stars="10" readonly="true" />
-                        </p:column>
-                        <p:column headerText="Status">
-                            <h:outputText value="#{movie.status}" />
-                        </p:column>
-                    </p:dataTable>
-                </h:panelGroup>
-                <h:panelGroup rendered="#{playlistBean.selectedPlaylist == null}">
-                    <h:outputText value="Select a playlist to view its movies." />
-                </h:panelGroup>
+  <h:head>
+    <title>Available Movies</title>
+    <h:outputStylesheet library="css" name="movie-card.css" />
+    <h:outputStylesheet library="css" name="movie-details.css" />
+    <h:outputScript library="js" name="overlay.js" />
+  </h:head>
+  <h:body>
+    <!-- Add a wrapper div with max-width -->
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <h:form id="mainForm">
+        <p:toolbar style="width: 100%;">
+          <f:facet name="left">
+            <p:graphicImage name="logo-no-background.svg" library="logos" alt="Cinephile Logo" height="150" width="150" />
+          </f:facet>
+          <f:facet name="right">
+            <h:panelGroup layout="block" style="display: flex; align-items: center;">
+              <h:panelGroup layout="block">
+                <p:panel rendered="#{not authenticationBean.loggedIn}" style="border: none; padding: 0;">
+                  <p:button value="Login" outcome="/login.xhtml" styleClass="ui-button-info" />
+                </p:panel>
+                <p:panel rendered="#{not authenticationBean.loggedIn}" style="border: none; padding: 0; margin-left: 5px;">
+                  <p:button value="Sign Up" outcome="/signup.xhtml" styleClass="ui-button-success" />
+                </p:panel>
+                <p:panel rendered="#{authenticationBean.loggedIn}" style="border: none; padding: 0; margin-left: 5px;">
+                  <p:commandButton value="Logout" action="#{authenticationBean.logout}" update="@form" styleClass="ui-button-danger" />
+                </p:panel>
+              </h:panelGroup>
             </h:panelGroup>
+          </f:facet>
+        </p:toolbar>
+        
+        <p:toolbar style="width: 100%;">
+          <p:toolbarGroup align="left" style="width: 100%;">
+            <p:inputText id="searchTerm" 
+                         value="#{movieViewBean.searchTerm}" 
+                         placeholder="Search movies, lists..." 
+                         style="width: 100%;">
+              <f:ajax event="keyup" render="movieGrid" listener="#{movieViewBean.searchMovies}" />
+            </p:inputText>
+          </p:toolbarGroup>
+        </p:toolbar>
 
-            <!-- Dialog for adding movie -->
-            <p:dialog id="addToListDialog" widgetVar="addToListDialog" header="Add Movie to List" modal="true" resizable="false" appendTo="@(body)" visible="true">
-                <h:panelGrid columns="2" style="margin-bottom: 10px;">
-                    <h:outputText value="Rating:" />
-                    <p:rating value="#{playlistBean.ratingAsInt}" stars="10" cancel="false" />
-                    <h:outputText value="Status:" />
-                    <p:selectOneMenu value="#{playlistBean.status}">
-                        <f:selectItem itemLabel="Watching" itemValue="Watching" />
-                        <f:selectItem itemLabel="Watched" itemValue="Watched" />
-                        <f:selectItem itemLabel="Plan to Watch" itemValue="Plan_to_Watch" />
-                        <f:selectItem itemLabel="Dropped" itemValue="Dropped" />
-                    </p:selectOneMenu>
-                </h:panelGrid>
-                <p:commandButton value="Add" action="#{playlistBean.addToList}" oncomplete="PF('addToListDialog').hide()" />
-            </p:dialog>
-        </h:form>
-    </h:body>
+        <!-- DataGrid for movie cards -->
+        <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
+          <p:panel styleClass="movie-card">
+            <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
+                           update=":mainForm:dialogContent"
+                           oncomplete="setOverlayBackground('#{movie.imageUrl}'); PF('movieDialog').show();"
+                           onerror="alert('AJAX error')">
+              <p:graphicImage value="#{movie.imageUrl}" styleClass="movie-poster" alt="Movie Poster" />
+              <div class="movie-card-content">
+                <h:outputText value="#{movie.title}" styleClass="movie-title" />
+              </div>
+            </p:commandLink>
+          </p:panel>
+        </p:dataGrid>
+
+        <!-- Dialog to display selected movie details -->
+        <p:dialog id="movieDialog" 
+                  widgetVar="movieDialog" 
+                  header="Movie Details" 
+                  modal="true" 
+                  resizable="false" 
+                  appendTo="@(body)"
+                  onHide="$('.ui-widget-overlay').css('background','');">
+          <p:outputPanel id="dialogContent">
+            <div class="surface-section">
+              <div class="font-medium text-3xl text-900 mb-3">Movie Details</div>
+              <h:panelGroup styleClass="details-container">
+                <ui:repeat value="#{movieViewBean.movieDetails}" var="detail">
+                  <div class="detail-item #{detail.key == 'Description' ? 'border-top-1 border-bottom-1' : 'border-top-1'} surface-border">
+                    <span class="label text-500 font-medium">#{detail.key}</span>
+                    <span class="value text-900">
+                      <h:outputText value="#{detail.value}"
+                                    rendered="#{detail.key != 'Rating' and detail.key != 'Description' and detail.key != 'Genre'}" />
+                      <h:outputText value="#{detail.value}" rendered="#{detail.key == 'Description'}" styleClass="line-height-3" />
+                      <h:panelGroup rendered="#{detail.key == 'Rating'}" layout="block" styleClass="rating-container">
+                        <p:rating value="#{movieViewBean.selectedMovieRatingAsInt}" stars="10" cancel="false" readonly="true" />
+                        <h:outputText value=" (#{detail.value})" styleClass="rating-value" />
+                      </h:panelGroup>
+                      <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
+                        <h:dataTable value="#{movieViewBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
+                          <h:column>
+                            <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
+                          </h:column>
+                        </h:dataTable>
+                      </h:panelGroup>
+                    </span>
+                  </div>
+                </ui:repeat>
+              </h:panelGroup>
+              <div class="text-center mt-4">
+                <p:commandButton value="Add to List" 
+                                 action="#{movieViewBean.navigateToAddToList}"
+                                 rendered="#{authenticationBean.loggedIn}"
+                                 styleClass="add-to-list-button" />
+                <p:button value="Login to Add" 
+                          outcome="/login.xhtml"
+                          rendered="#{not authenticationBean.loggedIn}"
+                          styleClass="add-to-list-button" />
+              </div>
+            </div>
+          </p:outputPanel>
+        </p:dialog>
+      </h:form>
+    </div>
+  </h:body>
 </html>
