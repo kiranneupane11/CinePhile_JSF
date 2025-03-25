@@ -32,35 +32,46 @@ public class PlaylistService {
     public void createList(User user, String listName) {
         if (!listExists(user, listName)) {
             UserPlaylist playlist = new UserPlaylist(listName, user);
-            userPlaylistRepository.add(playlist.getId(), playlist);
+            userPlaylistRepository.add(playlist);
         }
     }
     
-    public void addOrUpdateMovieRating(User user, Movie movie, Double rating, UserMovieRating.Status status) {
-        UserMovieRating existingRating = userMovieRepository.findByMovieAndUser(movie, user);
-        if (existingRating != null) {
-            existingRating.setRating(rating);
-            existingRating.setStatus(status);
-            userMovieRepository.merge(existingRating);
-        } else {
-            UserMovieRating newRating = new UserMovieRating(movie, rating, status, user);
-            userMovieRepository.persist(newRating);
+    public boolean addOrUpdateMovieInList(User user, Movie movie, Double rating, UserMovieRating.Status status, String listName) {
+        try {
+            // Check if there is an existing rating for this movie by the user
+            UserMovieRating movieRating = userMovieRepository.findByMovieAndUser(movie, user);
+
+            if (movieRating == null) {
+                // Create a new rating instance if not found
+                movieRating = new UserMovieRating(movie, rating, status, user);
+                userMovieRepository.add(movieRating);
+            } else {
+                // Update the existing rating
+                movieRating.setRating(rating);
+                movieRating.setStatus(status);
+                userMovieRepository.update(movieRating);
+            }
+
+            // Now add the movie to the corresponding playlist
+            Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(user, listName);
+            UserPlaylist playlist = existingListOpt.orElseGet(() -> {
+                UserPlaylist newPlaylist = new UserPlaylist(listName, user);
+                userPlaylistRepository.add(newPlaylist);
+                return newPlaylist;
+            });
+
+            // Create the association between the playlist and the movie rating
+            UserPlaylistMovies userPlaylistMovie = new UserPlaylistMovies(playlist, movieRating.getMovieID());
+            userPlayListMoviesRepository.add(userPlaylistMovie);
+            return true;
+        } catch (Exception e) {
+            // Log the exception and maybe rethrow it or return false
+            e.printStackTrace();
+            return false;
         }
     }
 
-    public boolean addMovieToList(User user, UserMovieRating userMovieRating, String listName) {
-        Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(user, listName);
-        UserPlaylist playlist = existingListOpt.orElseGet(() -> {
-            UserPlaylist newPlaylist = new UserPlaylist(listName, user);
-            userPlaylistRepository.add(newPlaylist.getId(), newPlaylist);
-            return newPlaylist;
-        });
 
-        UserPlaylistMovies userPlaylistMovie = new UserPlaylistMovies(playlist, userMovieRating.getMovieID());
-        userPlayListMoviesRepository.add(userPlaylistMovie.getId(), userPlaylistMovie);
-        userMovieRepository.add(userMovieRating.getId(), userMovieRating);
-        return true;
-    }
 
     public boolean listExists(User user, String listName) {
         return userPlaylistRepository.findByUserIdAndListName(user, listName).isPresent();

@@ -7,11 +7,19 @@
     <h:head>
         <title>List Manager</title>
         <h:outputStylesheet library="css" name="movie-details.css" />
-        <link rel="stylesheet" type="text/css" href="#{resource['primefaces/primefaces.css']}" />
         <h:outputStylesheet library="primefaces" name="theme.css"/>
+        <style>
+            .right-column-content {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                width: 100%;
+            }
+        </style>
     </h:head>
     <h:body>
         <h:form id="mainForm">
+            <p:growl id="growl" showDetail="true"/>
             <p:toolbar style="width: 100%;">
                 <f:facet name="left">
                     <p:graphicImage name="logo-no-background.svg" library="logos" alt="Cinephile Logo" height="150" width="150" />
@@ -31,14 +39,14 @@
                                  value="#{movieViewBean.searchTerm}" 
                                  placeholder="Search movies, lists..." 
                                  style="width: 100%;">
-                        <f:ajax event="keyup" render="movieGrid" listener="#{movieViewBean.searchMovies}" />
+                        <f:ajax event="keyup" render="playlistTab" listener="#{movieViewBean.searchMovies}" />
                     </p:inputText>
                 </p:toolbarGroup>
             </p:toolbar>
             
             <div class="card">
                 <p:tabView value="#{playlistBean.playlistsWithMovies}" var="playlistWrapper">
-                    <p:tab title="#{playlistWrapper.playlist.listName}">
+                    <p:tab id="playlistTab" title="#{playlistWrapper.playlist.listName}">
                         <ui:repeat value="#{playlistWrapper.movies}" var="usermovieRating">
                             <p:panel style="margin-bottom: 10px;">
                                 <p:row>
@@ -51,12 +59,17 @@
                                         <p><strong>Genre:</strong> #{usermovieRating.genre}</p>
                                         <p:rating readonly="true" value="#{usermovieRating.ratingAsInt}" stars="10"/>
                                     </p:column>
-                                    <p:column styleClass="ui-g-3" style="text-align: right; vertical-align: top;">
-                                        <p:commandButton value="Remove" 
-                                                         action="#{playlistBean.removeMovieFromPlaylist(playlistWrapper, usermovieRating)}"
-                                                         update="@form" 
-                                                         styleClass="ui-button-danger"/>
-                                        <p><strong>Status:</strong> #{usermovieRating.status}</p>
+                                    <p:column styleClass="ui-g-3" style="vertical-align: top;">
+                                        <h:panelGroup styleClass="right-column-content">
+                                            <p:commandButton value="Edit" icon="ui-icon-pencil" action="#{playlistBean.prepareEdit(usermovieRating)}"
+                                                update=":mainForm:addEditDialog" 
+                                                oncomplete="PF('addEditDialog').show()"
+                                                styleClass="ui-button-info" />
+                                            <p:commandButton value="Remove" icon="pi pi-trash" action="#{playlistBean.removeMovieFromPlaylist(playlistWrapper, usermovieRating)}"
+                                                update="@form" 
+                                                process="@this"
+                                                styleClass="ui-button-danger"/>
+                                        </h:panelGroup>
                                     </p:column>
                                 </p:row>
                             </p:panel>
@@ -65,21 +78,40 @@
                 </p:tabView>
             </div>
 
-            <!-- Dialog for adding movie -->
-            <p:dialog id="addToListDialog" widgetVar="addToListDialog" header="Add Movie to List" modal="true" resizable="false" appendTo="@(body)" visible="true">
-                <h:panelGrid columns="2" style="margin-bottom: 10px;">
-                    <h:outputText value="Rating:" />
-                    <p:rating value="#{playlistBean.ratingAsInt}" stars="10" cancel="false" />
-                    <h:outputText value="Status:" />
-                    <p:selectOneMenu value="#{playlistBean.status}">
-                        <f:selectItem itemLabel="Watching" itemValue="Watching" />
-                        <f:selectItem itemLabel="Watched" itemValue="Watched" />
-                        <f:selectItem itemLabel="Plan to Watch" itemValue="Plan_to_Watch" />
-                        <f:selectItem itemLabel="Dropped" itemValue="Dropped" />
-                    </p:selectOneMenu>
-                </h:panelGrid>
-                <p:commandButton value="Add" action="#{playlistBean.addToList}" oncomplete="PF('addToListDialog').hide()" />
-            </p:dialog>
-        </h:form>
-    </h:body>
+            <!-- Dialog for adding and editing movie -->
+        <p:dialog id="addEditDialog" widgetVar="addEditDialog" 
+            header="#{playlistBean.editMode ? 'Edit Movie' : 'Add Movie'}" 
+            modal="true" resizable="false" appendTo="@(body)">
+            <h:panelGrid columns="2" style="margin-bottom: 10px; padding: 10px; width: 100%;">
+                <h:outputText value="Status:" />
+                <p:selectOneRadio id="status" 
+                                 value="#{playlistBean.status}" 
+                                 layout="grid" 
+                                 columns="2"
+                                 required="true"
+                                 requiredMessage="Status is required">
+                    <f:selectItem itemLabel="Watching" itemValue="WATCHING" />
+                    <f:selectItem itemLabel="Watched" itemValue="WATCHED" />
+                    <f:selectItem itemLabel="Plan to Watch" itemValue="PLAN_TO_WATCH" />
+                    <f:selectItem itemLabel="Dropped" itemValue="DROPPED" />
+                </p:selectOneRadio>
+
+                <h:outputText value="Rating:" rendered="#{playlistBean.editMode}" />
+                <p:rating id="rating" 
+                         value="#{playlistBean.ratingAsInt}" 
+                         stars="10" 
+                         rendered="#{playlistBean.editMode}"
+                         cancel="false" />
+        </h:panelGrid>
+
+      <p:commandButton 
+        value="#{playlistBean.editMode ? 'Save' : 'Add'}"
+        action="#{playlistBean.saveSelectedUserMovie()}"
+        process="@form"
+        update="@form"
+        oncomplete="if (!args.validationFailed) PF('addEditDialog').hide()"
+        styleClass="ui-button-primary"/>
+    </p:dialog>
+</h:form>
+</h:body>
 </html>

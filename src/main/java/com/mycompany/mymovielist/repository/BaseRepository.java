@@ -11,12 +11,13 @@ import java.io.Serializable;
  *
  * @author kiran
  */
-
-public interface BaseRepository<T, ID> extends Serializable{
-    void add(ID id, T item);
+public interface BaseRepository<T, ID> extends Serializable {
+    void add(T item);
+    void update(T item);
     void remove(ID id);
     Optional<T> get(ID id);
     List<T> getAll();
 }
+
 
 

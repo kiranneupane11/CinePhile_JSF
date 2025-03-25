@@ -43,16 +43,4 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
             return null; 
         }
     }
-
-    public void persist(UserMovieRating userMovieRating) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(userMovieRating);
-        entityManager.getTransaction().commit();
-    }
-
-    public void merge(UserMovieRating userMovieRating) {
-        entityManager.getTransaction().begin();
-        entityManager.merge(userMovieRating);
-        entityManager.getTransaction().commit();
-    }
 }

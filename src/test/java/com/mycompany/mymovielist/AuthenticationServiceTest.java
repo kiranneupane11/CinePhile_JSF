@@ -56,7 +56,7 @@ public class AuthenticationServiceTest {
         assertTrue(result.isPresent(),"Signup should be successful and return the new user.");
         assertEquals(newUser, result.get());
         
-        verify(userRepository, times(1)).add(newUser.getId(), newUser);
+        verify(userRepository, times(1)).add(newUser);
         
     }
 }

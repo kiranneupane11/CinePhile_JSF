@@ -12,6 +12,8 @@ import com.mycompany.mymovielist.model.*;
 import java.util.*;
 import java.io.Serializable;
 import java.util.stream.Collectors;
+import javax.faces.context.FacesContext;
+
 
 /**
  *
@@ -82,7 +84,8 @@ public class MovieViewBean implements Serializable {
     
     public String navigateToAddToList() {
         if (selectedMovie != null) {
-            playlistBean.setSelectedMovie(selectedMovie);
+            FacesContext.getCurrentInstance().getExternalContext()
+            .getSessionMap().put("selectedMovie", selectedMovie);
             return "addtolist.xhtml?faces-redirect=true";
         }
         return null; 

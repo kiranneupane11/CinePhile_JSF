@@ -14,8 +14,13 @@ public abstract class AbstractRepository<T, ID> implements BaseRepository<T, ID>
     protected final Map<ID, T> items = new HashMap<>();
 
     @Override
-    public void add(ID id, T item) {
-        items.put(id, item);
+    public void add(T item) {
+        items.put((ID) getId(item), item);
+    }
+
+    @Override
+    public void update(T item) {
+        items.put((ID) getId(item), item);
     }
 
     @Override
@@ -32,5 +37,7 @@ public abstract class AbstractRepository<T, ID> implements BaseRepository<T, ID>
     public List<T> getAll() {
         return new ArrayList<>(items.values());
     }
+
+    protected abstract ID getId(T item); 
 }
 

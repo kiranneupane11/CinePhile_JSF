@@ -46,7 +46,7 @@ public class AuthenticationService {
         if (userRepository.findByUsername(user.getUsername()).isPresent() || userRepository.findByEmail(user.getEmail()).isPresent()) {
             return Optional.empty();
         }
-        userRepository.add(user.getId(), user);
+        userRepository.add(user);
         return Optional.of(user);
     }
 }

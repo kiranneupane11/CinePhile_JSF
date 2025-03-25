@@ -23,13 +23,15 @@ public class PlaylistBean implements Serializable {
 
     private User loggedInUser;
     private List<UserPlaylist> userPlaylist;
-    private double rating;
-    private UserMovieRating.Status status;
+    private double rating; 
+    private String status; 
     private String listName;
     private UserPlaylist selectedPlaylist;
     private List<UserMovieRatingDTO> selectedPlaylistMovies;
     private Movie selectedMovie;
     private List<PlaylistWithMovies> playlistsWithMovies;
+    private boolean editMode;
+    private UserMovieRatingDTO selectedMovieRating;
 
     public static class PlaylistWithMovies implements Serializable {
         private UserPlaylist playlist;
@@ -51,6 +53,7 @@ public class PlaylistBean implements Serializable {
 
     @PostConstruct
     public void init() {
+        
         this.loggedInUser = authenticationBean.getLoggedInUser();
         if (loggedInUser == null) {
             System.out.println("Logged-in user is null");
@@ -59,12 +62,18 @@ public class PlaylistBean implements Serializable {
             return;
         }
         System.out.println("Logged-in user: " + loggedInUser.getId());
+        
+        status = "Plan_to_Watch"; 
+        rating = 0.0;
+        selectedMovie = (Movie) FacesContext.getCurrentInstance()
+                        .getExternalContext().getSessionMap().get("selectedMovie");
         userPlaylist = playlistService.getUserLists(loggedInUser);
         if (userPlaylist == null) {
             System.out.println("User playlist is null");
             return;
         }
         System.out.println("User playlists size: " + userPlaylist.size());
+        
         String[] defaultLists = {"Watching", "Watched", "Plan to Watch", "Dropped"};
         for (String list : defaultLists) {
             if (!playlistService.listExists(loggedInUser, list)) {
@@ -72,6 +81,7 @@ public class PlaylistBean implements Serializable {
                 System.out.println("Created list: " + list);
             }
         }
+        
         loadPlaylistsWithMovies();
     }
 
@@ -102,6 +112,7 @@ public class PlaylistBean implements Serializable {
     }
 
     public void addToList() {
+        this.editMode = false;
         if (loggedInUser == null) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "You must be logged in to add movies."));
@@ -112,16 +123,24 @@ public class PlaylistBean implements Serializable {
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "No movie selected."));
             return;
         }
-        if (status == null) {
+        if (status == null || status.trim().isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Please select a status."));
             return;
         }
         try {
-            // Use the new addOrUpdateMovieRating method
-            playlistService.addOrUpdateMovieRating(loggedInUser, selectedMovie, rating, status);
-            listName = status.toString().replace("_", " ");
-            if (playlistService.addMovieToList(loggedInUser, new UserMovieRating(selectedMovie, rating, status, loggedInUser), listName)) {
+            // Convert String status to enum (adjust the conversion as needed)
+            UserMovieRating.Status enumStatus = UserMovieRating.Status.valueOf(status.replace(" ", "_"));
+
+            // Decide rating value only if applicable
+            double ratingToUse = ("Watched".equals(status) || "Dropped".equals(status)) ? rating : 0.0;
+
+            // Map status to listName for display purposes (remove underscores)
+            listName = status.replace("_", " ");
+
+            // Use the combined method
+            boolean success = playlistService.addOrUpdateMovieInList(loggedInUser, selectedMovie, ratingToUse, enumStatus, listName);
+            if (success) {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie added successfully!"));
                 loadPlaylistsWithMovies();
@@ -129,11 +148,35 @@ public class PlaylistBean implements Serializable {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to add movie to playlist."));
             }
+        } catch (IllegalArgumentException e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Invalid status value: " + status));
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to add movie: " + e.getMessage()));
         }
     }
+    
+    public void updateMovieInList() {
+        try {
+            UserMovieRating.Status enumStatus = UserMovieRating.Status.valueOf(status);
+            double ratingToUse = ("WATCHED".equals(status) || "DROPPED".equals(status)) ? rating : 0.0;
+            listName = status.replace("_", " ");
+            boolean success = playlistService.addOrUpdateMovieInList(loggedInUser, selectedMovie, ratingToUse, enumStatus, listName);
+            if (success) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie updated successfully!"));
+                loadPlaylistsWithMovies();
+            } else {
+                FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to update movie in playlist."));
+            }
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to update movie: " + e.getMessage()));
+        }
+    }
+
 
     public void selectPlaylist(String playlistName) {
         if (loggedInUser == null) {
@@ -195,14 +238,30 @@ public class PlaylistBean implements Serializable {
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to remove movie: " + e.getMessage()));
         }
     }
+    
+    public void prepareEdit(UserMovieRatingDTO movieRating) {
+        this.selectedMovieRating = movieRating;
+        this.selectedMovie = movieRating.getMovie();
+        this.status = movieRating.getStatus().name();
+        this.rating = movieRating.getRating() != null ? movieRating.getRatingAsInt() : 0.0;
+        this.editMode = true;
+    }
+    
+    public void saveSelectedUserMovie() {
+    if (editMode) {
+        updateMovieInList();
+    } else {
+        addToList();
+    }
+}
 
     // Getters and Setters
     public List<UserPlaylist> getUserPlaylist() { return userPlaylist; }
     public void setUserPlaylist(List<UserPlaylist> userPlaylist) { this.userPlaylist = userPlaylist; }
     public double getRating() { return rating; }
     public void setRating(double rating) { this.rating = rating; }
-    public UserMovieRating.Status getStatus() { return status; }
-    public void setStatus(UserMovieRating.Status status) { this.status = status; }
+    public String getStatus() { return status; } 
+    public void setStatus(String status) { System.out.println("Setting status: " + status);this.status = status; } 
     public String getListName() { return listName; }
     public void setListName(String listName) { this.listName = listName; }
     public UserPlaylist getSelectedPlaylist() { return selectedPlaylist; }
@@ -210,9 +269,11 @@ public class PlaylistBean implements Serializable {
     public List<UserMovieRatingDTO> getSelectedPlaylistMovies() { return selectedPlaylistMovies; }
     public void setSelectedPlaylistMovies(List<UserMovieRatingDTO> selectedPlaylistMovies) { this.selectedPlaylistMovies = selectedPlaylistMovies; }
     public int getRatingAsInt() { return (int) Math.round(rating); }
-    public void setRatingAsInt(int ratingAsInt) { this.rating = ratingAsInt; }
+    public void setRatingAsInt(int ratingAsInt) { this.rating = (double) ratingAsInt; } // Convert int to double
     public int getMovieRatingAsInt(UserMovieRatingDTO movie) { return movie != null && movie.getRating() != null ? movie.getRatingAsInt() : 0; }
     public Movie getSelectedMovie() { return selectedMovie; }
     public void setSelectedMovie(Movie selectedMovie) { this.selectedMovie = selectedMovie; }
     public List<PlaylistWithMovies> getPlaylistsWithMovies() { return playlistsWithMovies; }
+    public boolean isEditMode() {return editMode;}
+    public void setEditMode(boolean editMode) {this.editMode = editMode;}
 }

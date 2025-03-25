@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.mymovielist.repository;
+import com.mycompany.mymovielist.model.UserMovieRating;
 import com.mycompany.mymovielist.util.EMFProvider;
 
 /**
@@ -20,35 +21,45 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
     protected DatabaseRepository(Class<T> entityType, EntityManager entityManager) {
         this.entityType = entityType;
         this.entityManager = EMFProvider.getEntityManager();
-
     }
-    
+
     @Override
-    public void add(ID id, T item) {
-        entityManager.getTransaction().begin(); 
-        entityManager.persist(item);  
+    public void add(T item) {
+        entityManager.getTransaction().begin();
+        entityManager.persist(item);
+        entityManager.getTransaction().commit();
+    }
+
+    @Override
+    public void update(T item) {
+        entityManager.getTransaction().begin();
+        entityManager.merge(item);
         entityManager.getTransaction().commit();
     }
 
     @Override
     public void remove(ID id) {
-        entityManager.getTransaction().begin(); 
-        get(id).ifPresent(entity -> entityManager.remove(entity)); 
-        entityManager.getTransaction().commit(); 
+        entityManager.getTransaction().begin();
+        get(id).ifPresent(entity -> entityManager.remove(entity));
+        entityManager.getTransaction().commit();
     }
 
     @Override
     public Optional<T> get(ID id) {
-        return Optional.ofNullable(entityManager.find(entityType, id)); 
+        return Optional.ofNullable(entityManager.find(entityType, id));
     }
 
     @Override
     public List<T> getAll() {
-        String entityName = entityType.getSimpleName();
-        List<T> items = entityManager.createQuery("SELECT e FROM " + entityName + " e", entityType)                
+        List<T> items = entityManager.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
                 .getResultList();
         System.out.println("Items fetched: " + items.size());
         return items;
+    }
+    
+    @Override
+    protected ID getId(T item) {
+        throw new UnsupportedOperationException("getId() must be implemented in subclasses.");
     }
 }
 
