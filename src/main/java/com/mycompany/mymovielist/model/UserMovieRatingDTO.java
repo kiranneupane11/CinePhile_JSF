@@ -11,7 +11,6 @@ import java.time.Year;
  * @author kiran
  */
 public class UserMovieRatingDTO {
-    private Movie movie;
     private String title;
     private String genre;
     private Double rating;
@@ -23,7 +22,6 @@ public class UserMovieRatingDTO {
     
 
     public UserMovieRatingDTO(Movie movie, UserMovieRating userMovie) {
-        this.movie = movie;
         this.movieID = movie.getId();
         this.title = movie.getTitle();
         this.releaseYear = movie.getReleaseYear();
@@ -34,7 +32,6 @@ public class UserMovieRatingDTO {
         this.imageUrl = movie.getImageUrl();
     }
     
-    public Movie getMovie() { return movie; }
     public Long getMovieID() { return movieID; }
     public String getTitle() { return title; }
     public String getGenre() { return genre; }

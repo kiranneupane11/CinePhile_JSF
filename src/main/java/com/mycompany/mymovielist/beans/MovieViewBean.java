@@ -84,10 +84,8 @@ public class MovieViewBean implements Serializable {
     
     public String navigateToAddToList() {
         if (selectedMovie != null) {
-            FacesContext.getCurrentInstance().getExternalContext()
-            .getSessionMap().put("selectedMovie", selectedMovie);
-            return "addtolist.xhtml?faces-redirect=true";
-        }
+        return "addtolist.xhtml?faces-redirect=true&amp;movieId=" + selectedMovie.getId();
+    }
         return null; 
     }
     

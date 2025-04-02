@@ -35,11 +35,19 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
     }
     
     public void removeMovieFromPlaylist(UserPlaylist playlist, Movie movie) {
-        entityManager.createQuery(
-            "DELETE FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie")
-            .setParameter("playlist", playlist)
-            .setParameter("movie", movie)
+        // Ensure we're using managed entities
+        UserPlaylist managedPlaylist = entityManager.merge(playlist);
+        Movie managedMovie = entityManager.merge(movie);
+
+        int result = entityManager.createQuery(
+            "DELETE FROM UserPlaylistMovies upm " +
+            "WHERE upm.userPlaylist = :playlist " +
+            "AND upm.movie = :movie")
+            .setParameter("playlist", managedPlaylist)
+            .setParameter("movie", managedMovie)
             .executeUpdate();
+
+        System.out.println("Rows removed: " + result);
     }
     
     public void removeByPlaylist(UserPlaylist playlist) {

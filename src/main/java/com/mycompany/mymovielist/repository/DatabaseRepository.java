@@ -3,7 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.mymovielist.repository;
-import com.mycompany.mymovielist.model.UserMovieRating;
 import com.mycompany.mymovielist.util.EMFProvider;
 
 /**
@@ -46,13 +45,19 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
 
     @Override
     public Optional<T> get(ID id) {
-        return Optional.ofNullable(entityManager.find(entityType, id));
+        T entity = entityManager.find(entityType, id);
+            if (entity != null) {
+                entityManager.refresh(entity);  
+            }
+            return Optional.ofNullable(entity);    
     }
-
     @Override
     public List<T> getAll() {
         List<T> items = entityManager.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
                 .getResultList();
+        for (T item : items) {
+            entityManager.refresh(item);
+        }
         System.out.println("Items fetched: " + items.size());
         return items;
     }
