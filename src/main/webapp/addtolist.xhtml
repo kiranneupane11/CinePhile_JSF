@@ -56,7 +56,7 @@
             <div class="card">
                 <p:tabView  id="playlistTabView" value="#{playlistBean.playlistsWithMovies}" var="playlistWrapper" cache="false" dynamic="true">
                     <p:ajax event="tabChange" listener="#{playlistBean.onTabChange}" update="playlistTabView" />
-                    <p:tab id="playlistTab" title="#{playlistWrapper.playlist.listName}">
+                    <p:tab id="playlistTab" title="#{playlistWrapper.listName}">
                         <ui:repeat value="#{playlistWrapper.movies}" var="usermovieRating">
                             <p:panel style="margin-bottom: 10px;">
                                 <p:row>
@@ -67,13 +67,14 @@
                                         <h3>#{usermovieRating.title}</h3>
                                         <p>#{usermovieRating.description}</p>
                                         <p><strong>Genre:</strong> #{usermovieRating.genre}</p>
-                                        <p:rating readonly="true" value="#{usermovieRating.ratingAsInt}" stars="10"/>
+                                        <p:rating readonly="true" value="#{usermovieRating.ratingAsInt}" stars="10"
+                                                  rendered="#{playlistWrapper.listName eq 'Watched' or playlistWrapper.listName eq 'Dropped'}"/>
                                     </p:column>
                                     <p:column styleClass="ui-g-3" style="vertical-align: top;">
                                         <h:panelGroup styleClass="right-column-content">
                                             <p:commandButton value="Remove"
                                                              icon="pi pi-trash"
-                                                             action="#{playlistBean.removeMovieFromPlaylist(playlistWrapper.playlist, usermovieRating)}"
+                                                             action="#{playlistBean.removeMovieFromPlaylist(playlistWrapper, usermovieRating)}"
                                                              update=":mainForm:playlistTabView :mainForm:growl :mainForm:playlistTabView:playlistTab" 
                                                              styleClass="ui-button-danger" 
                                                              process="@form" />

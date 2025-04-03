@@ -10,7 +10,6 @@ package com.mycompany.mymovielist.repository;
  */
 import com.mycompany.mymovielist.model.*;
 import com.mycompany.mymovielist.util.EMFProvider;
-import javax.persistence.EntityManager;
 import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,6 +28,15 @@ public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Lon
             UserPlaylist.class)
             .setParameter("user", user)
             .getResultList();
+    }
+    
+    public Optional<UserPlaylist> getListById (Long playlistId, User user){
+        return entityManager.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user AND ml.id = :playlistId", UserPlaylist.class)
+                .setParameter("playlistId", playlistId)
+                .setParameter("user", user)
+                .getResultList()
+                .stream()
+                .findFirst();
     }
     
     public List<UserPlaylist> getListsByUserName(String username){

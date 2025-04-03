@@ -62,4 +62,18 @@ public class User extends BaseEntity {
     public void setPassword(String password) {
         this.password = password;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return this.getId() != null && this.getId().equals(user.getId());
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
+    }
 }

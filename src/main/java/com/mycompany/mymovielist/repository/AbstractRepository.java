@@ -24,8 +24,8 @@ public abstract class AbstractRepository<T, ID> implements BaseRepository<T, ID>
     }
 
     @Override
-    public void remove(ID id) {
-        items.remove(id);
+    public void remove(T item) {
+        items.remove((ID) getId(item), item);
     }
 
     @Override

@@ -36,26 +36,9 @@ public class PlaylistBean implements Serializable {
     private UserPlaylist selectedPlaylist;
     private List<UserMovieRatingDTO> selectedPlaylistMovies;
     private Movie selectedMovie;
-    private List<PlaylistWithMovies> playlistsWithMovies;
+    private List<PlaylistDTO> playlistsWithMovies;
     private Long movieId;
-
-    public static class PlaylistWithMovies implements Serializable {
-        private UserPlaylist playlist;
-        private List<UserMovieRatingDTO> movies;
-
-        public PlaylistWithMovies(UserPlaylist playlist, List<UserMovieRatingDTO> movies) {
-            this.playlist = playlist;
-            this.movies = movies;
-        }
-
-        public UserPlaylist getPlaylist() {
-            return playlist;
-        }
-
-        public List<UserMovieRatingDTO> getMovies() {
-            return movies;
-        }
-    }
+    private boolean isEditing = false;
 
     @PostConstruct
     public void init() {
@@ -74,7 +57,6 @@ public class PlaylistBean implements Serializable {
         }
         rating = 0;
         userPlaylist = playlistService.getUserLists(loggedInUser);
-        // Also import userplaylistmovies from playlist ids obtained from this logged in user and then use those objects to populate playlist tabs
         if (userPlaylist == null) {
             System.out.println("User playlist is null");
             return;
@@ -93,26 +75,9 @@ public class PlaylistBean implements Serializable {
     }
 
     private void loadPlaylistsWithMovies() {
-        if (loggedInUser == null) {
-            System.out.println("Cannot load playlists: loggedInUser is null");
-            return;
-        }
-        userPlaylist = playlistService.getUserLists(loggedInUser);
-        if (userPlaylist == null) {
-            System.out.println("User playlist is null in loadPlaylistsWithMovies");
-            return;
-        }
         try {
-            playlistsWithMovies = userPlaylist.stream()
-                .peek(p -> System.out.println("Processing playlist: " + p.getListName() + " (ID: " + p.getId() + ")"))
-                .map(p -> {
-                    List<UserMovieRatingDTO> movies = playlistService.viewMoviesFromPlaylist(p, loggedInUser);
-                    System.out.println("Movies for " + p.getListName() + ": " + (movies != null ? movies.size() : "null"));
-                    return new PlaylistWithMovies(p, movies);
-                })
-                .collect(Collectors.toList());
+            playlistsWithMovies = playlistService.loadPlaylistsWithMovies(loggedInUser);
         } catch (Exception e) {
-            System.err.println("Error loading playlists with movies: " + e.getMessage());
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to load playlists: " + e.getMessage()));
         }
@@ -168,6 +133,7 @@ public class PlaylistBean implements Serializable {
             double ratingToUse = rating;
             listName = status.replace("_", " ");
             boolean success = playlistService.addOrUpdateMovieInList(loggedInUser, selectedMovie, ratingToUse, enumStatus, listName);
+            this.isEditing = false;
             if (success) {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie updated successfully!"));
@@ -225,73 +191,80 @@ public class PlaylistBean implements Serializable {
         }
     }
 
-    public void removeMovieFromPlaylist(UserPlaylist playlist, UserMovieRatingDTO userMovieRatingDTO) {
-        if (loggedInUser == null || playlist == null || userMovieRatingDTO == null) {
+    public void removeMovieFromPlaylist(PlaylistDTO playlistWrapper, UserMovieRatingDTO usermovieRatingDTO) {
+        // First, fetch the full playlist entity using its ID from the DTO.
+        Optional<UserPlaylist> fetchedPlaylist = playlistService.getPlaylist(playlistWrapper.getPlaylistId(), loggedInUser);
+        if (!fetchedPlaylist.isPresent()) {
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Invalid parameters for removal."));
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch playlist."));
             return;
         }
-        try {
-            // Retrieve the managed Movie entity
-            Optional<Movie> optionalMovie = movieService.getMovieById(userMovieRatingDTO.getMovieID());
-            if (!optionalMovie.isPresent()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
-                return;
-            }
-            Movie movie = optionalMovie.get();
 
-            // Call the new service method that uses UserPlaylistMovies
-            boolean success = playlistService.removeUserPlaylistMovie(playlist, movie, loggedInUser);
-            if (success) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie removed successfully!"));
-                loadPlaylistsWithMovies();
-            } else {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to remove movie from playlist."));
-            }
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to remove movie: " + e.getMessage()));
-        }
-    }
-    
-
-
-    public void editMovieFromPlaylist(PlaylistWithMovies playlistWrapper, UserMovieRatingDTO movieRating) {
-        this.selectedPlaylist = playlistWrapper.getPlaylist();
-        this.movieId = movieRating.getMovieID();
-        Optional<Movie> freshMovie = movieService.getMovieById(movieId);
-            if (freshMovie.isPresent()) {
-                this.selectedMovie = freshMovie.get();
-            } else {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch movie: ")); }
-        this.status = movieRating.getStatus() != null ? movieRating.getStatus().toString() : "Plan_to_Watch";
-        this.rating = movieRating.getRating() != null ? movieRating.getRatingAsInt() : 0;
-        FacesContext.getCurrentInstance().getExternalContext().getSessionMap().remove("selectedMovie");
-    }
-    
-    public void loadSelectedMovie() {
-    System.out.println("loadSelectedMovie called with movieId: " + movieId);
-    if (movieId != null) {
-        Optional<Movie> retrievedMovie = movieService.getMovieById(movieId);
-        if (retrievedMovie.isPresent()) {
-            selectedMovie = retrievedMovie.get();
-            System.out.println("Movie loaded: " + selectedMovie.getTitle());
-        } else {
-            System.out.println("Movie not found for id: " + movieId);
+        // Next, fetch the full movie entity using the movie ID from the UserMovieRatingDTO.
+        Optional<Movie> optionalMovie = movieService.getMovieById(usermovieRatingDTO.getMovieID());
+        if (!optionalMovie.isPresent()) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
+            return;
         }
-    } else {
-        System.out.println("movieId is null");
-        }   
+
+        // Call the service method to remove the movie from the playlist.
+        boolean removed = playlistService.removeMovieInPlaylist(fetchedPlaylist.get(), optionalMovie.get(), loggedInUser);
+        if (removed) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie removed successfully!"));
+            loadPlaylistsWithMovies();
+        } else {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to remove movie from playlist."));
+        }
+    }
+
+
+    public void editMovieFromPlaylist(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
+        this.isEditing = true;
+        // Fetch and set the correct playlist for this edit action
+        Optional<UserPlaylist> fetchedPlaylist = playlistService.getPlaylist(playlistWrapper.getPlaylistId(), loggedInUser);
+        if (fetchedPlaylist.isPresent()) {
+             this.selectedPlaylist = fetchedPlaylist.get();
+        } else {
+             FacesContext.getCurrentInstance().addMessage(null,
+                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch playlist."));
+             return;
+        }
+        // Set the movie id and load the movie entity for the selected rating
+        this.movieId = movieRating.getMovieID();
+        Optional<Movie> freshMovie = movieService.getMovieById(movieId);
+        if (freshMovie.isPresent()) {
+             this.selectedMovie = freshMovie.get();
+             System.out.println("Selected movie for editing: " + selectedMovie.getTitle());
+        } else {
+             FacesContext.getCurrentInstance().addMessage(null,
+                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch movie."));
+        }
+        // Update status and rating from the DTO
+        this.status = movieRating.getStatus() != null ? movieRating.getStatus().toString() : "Plan_To_Watch";
+        this.rating = movieRating.getRating() != null ? movieRating.getRatingAsInt() : 0;
+    }
+
+
+    
+    public void loadSelectedMovie() {
+        if (!isEditing) {
+            if (movieId != null) {
+                Optional<Movie> retrievedMovie = movieService.getMovieById(movieId);
+                if (retrievedMovie.isPresent()) {
+                    selectedMovie = retrievedMovie.get();
+                } else {
+                    FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
+                }
+            }
+        }
     }
     
-    public void onTabChange(TabChangeEvent event) {
-    loadPlaylistsWithMovies();
+     public void onTabChange(TabChangeEvent event) {
+        loadPlaylistsWithMovies();
     }
 
 
@@ -313,7 +286,7 @@ public class PlaylistBean implements Serializable {
     public int getMovieRatingAsInt(UserMovieRatingDTO movie) { return movie != null && movie.getRating() != null ? movie.getRatingAsInt() : 0; }
     public Movie getSelectedMovie() { return selectedMovie; }
     public void setSelectedMovie(Movie selectedMovie) { this.selectedMovie = selectedMovie; }
-    public List<PlaylistWithMovies> getPlaylistsWithMovies() { return playlistsWithMovies; }
+    public List<PlaylistDTO> getPlaylistsWithMovies() { return playlistsWithMovies; }
     
     public Long getMovieId() {
         return movieId;
@@ -323,5 +296,11 @@ public class PlaylistBean implements Serializable {
         this.movieId = movieId;
     }
 
-    
-}
+    public boolean isEditing() {
+        return isEditing;
+    }
+
+    public void setEditing(boolean isEditing) {
+            this.isEditing = isEditing;
+        }
+    }

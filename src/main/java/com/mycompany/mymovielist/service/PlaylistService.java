@@ -5,12 +5,10 @@ import com.mycompany.mymovielist.repository.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import com.mycompany.mymovielist.util.EMFProvider;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 
 
 @Named
@@ -32,10 +30,6 @@ public class PlaylistService {
     }
     
     public PlaylistService(){};
-    
-    private EntityManager getEntityManager() {
-        return EMFProvider.getEntityManager();
-    }
 
     public void createList(User user, String listName) {
         if (!listExists(user, listName)) {
@@ -46,40 +40,60 @@ public class PlaylistService {
     
     public boolean addOrUpdateMovieInList(User user, Movie movie, Double rating, UserMovieRating.Status status, String listName) {
         try {
-            // Check if there is an existing rating for this movie by the user
-            Optional<UserMovieRating> fetchedmovieRating = userMovieRepository.findByUserAndMovie(user, movie);
-            UserMovieRating movieRating = fetchedmovieRating.get();
-
-            if (movieRating == null) {
-                // Create a new rating instance if not found
+            // Update or create the rating
+            Optional<UserMovieRating> fetchedMovieRating = userMovieRepository.findByUserAndMovie(user, movie);
+            UserMovieRating movieRating;
+            if (!fetchedMovieRating.isPresent()) {
+                // Create new rating if not found
                 movieRating = new UserMovieRating(movie, rating, status, user);
                 userMovieRepository.add(movieRating);
             } else {
-                // Update the existing rating
+                // Update existing rating
+                movieRating = fetchedMovieRating.get();
                 movieRating.setRating(rating);
                 movieRating.setStatus(status);
                 userMovieRepository.update(movieRating);
             }
 
-            // Now add the movie to the corresponding playlist
+            // Find (or create) the target playlist for the given listName
             Optional<UserPlaylist> existingListOpt = userPlaylistRepository.findByUserIdAndListName(user, listName);
-            UserPlaylist playlist = existingListOpt.orElseGet(() -> {
+            UserPlaylist targetPlaylist = existingListOpt.orElseGet(() -> {
                 UserPlaylist newPlaylist = new UserPlaylist(listName, user);
                 userPlaylistRepository.add(newPlaylist);
                 return newPlaylist;
             });
 
-            // Create the association between the playlist and the movie rating
-            UserPlaylistMovies userPlaylistMovie = new UserPlaylistMovies(playlist, movieRating.getMovieID());
-            userPlayListMoviesRepository.add(userPlaylistMovie);
+            // Remove any associations for this movie for this user that do not match the target playlist.
+            userPlayListMoviesRepository.removeAssociationsExcept(user, movie, targetPlaylist);
+
+            // Check if an association for the target playlist already exists; if not, create one.
+            Optional<UserPlaylistMovies> existingAssociation = userPlayListMoviesRepository
+                    .findByPlaylistAndMovie(targetPlaylist, movie);
+            if (!existingAssociation.isPresent()) {
+                UserPlaylistMovies association = new UserPlaylistMovies(targetPlaylist, movieRating.getMovieID());
+                userPlayListMoviesRepository.add(association);
+            }
+
             return true;
         } catch (Exception e) {
-            // Log the exception and maybe rethrow it or return false
             e.printStackTrace();
             return false;
         }
     }
 
+    
+    public List<PlaylistDTO> loadPlaylistsWithMovies(User user) {
+        List<UserPlaylist> playlists = getUserLists(user);
+        List<PlaylistDTO> result = new ArrayList<>();
+
+        for (UserPlaylist playlist : playlists) {
+            List<UserMovieRatingDTO> movies = userPlayListMoviesRepository.getMoviesFromPlaylist(playlist, user);
+            PlaylistDTO dto = new PlaylistDTO(playlist.getId(), playlist.getListName(), movies);
+            result.add(dto);
+        }
+
+        return result;
+    }
 
 
     public boolean listExists(User user, String listName) {
@@ -98,65 +112,27 @@ public class PlaylistService {
         return userPlayListMoviesRepository.getMoviesFromPlaylist(playlist, user);
     }
 
-    public Optional<UserPlaylist> getUserPlaylistById(long playlistId, User user) {
-        return userPlaylistRepository.get(playlistId).filter(p -> p.getUser().equals(user));
+    public Optional<UserPlaylist> getPlaylist(Long listId, User user) {
+        return userPlaylistRepository.getListById(listId, user);
     }
     
-    public boolean removeUserPlaylistMovie(UserPlaylist playlist, Movie movie, User user) {
-    EntityManager em = null;
-    EntityTransaction tx = null;
-    try {
-        em = EMFProvider.getEntityManager();
-        tx = em.getTransaction();
-        tx.begin();
-
-        // Ensure the playlist is owned by the user
-        UserPlaylist managedPlaylist = em.find(UserPlaylist.class, playlist.getId());
-        if (!managedPlaylist.getUser().getId().equals(user.getId())) {
+    @Transactional
+    public boolean removeMovieInPlaylist(UserPlaylist playlist, Movie movie, User user) {
+        if (!playlist.getUser().equals(user)) {
             System.out.println("User does not own the playlist.");
             return false;
         }
-        
-        // Find the managed Movie entity
-        Movie managedMovie = em.find(Movie.class, movie.getId());
-        if (managedMovie == null) {
-            System.out.println("Movie not found.");
+        try {
+            // Now returns boolean instead of rows affected
+            return userPlayListMoviesRepository.removeMovieInPlaylist(playlist, movie);
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
-        }
-
-        // Locate the UserPlaylistMovies entity that represents the relationship.
-        TypedQuery<UserPlaylistMovies> query = em.createQuery(
-            "SELECT upm FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie", 
-            UserPlaylistMovies.class);
-        query.setParameter("playlist", managedPlaylist);
-        query.setParameter("movie", managedMovie);
-        UserPlaylistMovies upm = query.getSingleResult();
-        
-        if (upm != null) {
-            em.remove(upm);
-        } else {
-            System.out.println("UserPlaylistMovies record not found.");
-            return false;
-        }
-        
-        tx.commit();
-        return true;
-    } catch (Exception e) {
-        if (tx != null && tx.isActive()) {
-            tx.rollback();
-        }
-        System.err.println("Remove failed: " + e.getMessage());
-        return false;
-    } finally {
-        if (em != null) {
-            em.close();
         }
     }
-}
-
 
     public void deleteList(UserPlaylist playlist) {
         userPlayListMoviesRepository.removeByPlaylist(playlist);
-        userPlaylistRepository.remove(playlist.getId());
+        userPlaylistRepository.remove(playlist);
     }
 }

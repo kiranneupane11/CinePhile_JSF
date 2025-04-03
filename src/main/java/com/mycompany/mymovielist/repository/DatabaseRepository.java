@@ -37,9 +37,9 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
     }
 
     @Override
-    public void remove(ID id) {
+    public void remove(T item) {
         entityManager.getTransaction().begin();
-        get(id).ifPresent(entity -> entityManager.remove(entity));
+        get(getId(item)).ifPresent(entity -> entityManager.remove(entity));
         entityManager.getTransaction().commit();
     }
 

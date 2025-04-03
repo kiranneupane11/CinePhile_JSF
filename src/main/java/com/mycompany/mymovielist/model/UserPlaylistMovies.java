@@ -36,7 +36,5 @@ public class UserPlaylistMovies extends BaseEntity {
     public Movie getMovieId(){
         return movie;
     }
-   
-    
 }
 

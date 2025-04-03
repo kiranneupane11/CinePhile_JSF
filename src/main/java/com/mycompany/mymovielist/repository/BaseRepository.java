@@ -14,7 +14,7 @@ import java.io.Serializable;
 public interface BaseRepository<T, ID> extends Serializable {
     void add(T item);
     void update(T item);
-    void remove(ID id);
+    void remove(T item);
     Optional<T> get(ID id);
     List<T> getAll();
 }

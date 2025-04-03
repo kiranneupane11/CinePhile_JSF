@@ -10,9 +10,10 @@ import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 import javax.persistence.EntityManager;
-
-
+import javax.persistence.EntityTransaction;
 /**
  *
  * @author kiran
@@ -26,9 +27,7 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
     }
     
     public List<UserMovieRatingDTO> getMoviesFromPlaylist(UserPlaylist playlist, User user) {
-        EntityManager em = EMFProvider.getEntityManager();
-        try {
-            return em.createQuery(
+            return entityManager.createQuery(
                 "SELECT new com.mycompany.mymovielist.model.UserMovieRatingDTO(" +
                     "upm.movie, " +
                     "(SELECT umr FROM UserMovieRating umr WHERE umr.movie = upm.movie AND umr.user = :userIdParam)" +
@@ -37,27 +36,8 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
                 "WHERE upm.userPlaylist.id = :playlistIdParam", UserMovieRatingDTO.class)
                 .setParameter("playlistIdParam", playlist.getId())
                 .setParameter("userIdParam", user)
+                .setHint("javax.persistence.cache.storeMode", "REFRESH")
                 .getResultList();
-        } finally {
-            em.close();
-        }
-    }
-
-    
-    public void removeMovieFromPlaylist(UserPlaylist playlist, Movie movie) {
-        // Ensure we're using managed entities
-        UserPlaylist managedPlaylist = entityManager.merge(playlist);
-        Movie managedMovie = entityManager.merge(movie);
-
-        int result = entityManager.createQuery(
-            "DELETE FROM UserPlaylistMovies upm " +
-            "WHERE upm.userPlaylist = :playlist " +
-            "AND upm.movie = :movie")
-            .setParameter("playlist", managedPlaylist)
-            .setParameter("movie", managedMovie)
-            .executeUpdate();
-
-        System.out.println("Rows removed: " + result);
     }
     
     public void removeByPlaylist(UserPlaylist playlist) {
@@ -65,5 +45,61 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
             .setParameter("playlist", playlist)
             .executeUpdate();
     }
+    
+    public boolean removeMovieInPlaylist(UserPlaylist playlist, Movie movie) {
+        // Find the entity first
+        TypedQuery<UserPlaylistMovies> query = entityManager.createQuery(
+            "SELECT upm FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie",
+            UserPlaylistMovies.class);
+        query.setParameter("playlist", playlist);
+        query.setParameter("movie", movie);
+        List<UserPlaylistMovies> results = query.getResultList();
+        if (results.isEmpty()) {
+            return false;
+        }
+        // Remove each found entity
+        results.forEach(entityManager::remove);
+        return true;
+    }
+    
+    public Optional<UserPlaylistMovies> findByPlaylistAndMovie(UserPlaylist playlist, Movie movie) {
+        TypedQuery<UserPlaylistMovies> query = entityManager.createQuery(
+            "SELECT upm FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie",
+            UserPlaylistMovies.class);
+        query.setParameter("playlist", playlist);
+        query.setParameter("movie", movie);
+        List<UserPlaylistMovies> result = query.getResultList();
+        return result.stream().findFirst();
+    }
+
+    
+   public void removeAssociationsExcept(User user, Movie movie, UserPlaylist targetPlaylist) {
+        EntityManager em = EMFProvider.getEntityManager();
+        try {
+            EntityTransaction tx = em.getTransaction();
+            tx.begin();
+            int count = em.createQuery(
+                "DELETE FROM UserPlaylistMovies upm " +
+                "WHERE upm.movie = :movie " +
+                "AND upm.userPlaylist.id IN (" +
+                "    SELECT up.id FROM UserPlaylist up " +
+                "    WHERE up.user = :user AND up <> :targetPlaylist" +
+                ")")
+                .setParameter("movie", movie)
+                .setParameter("user", user)
+                .setParameter("targetPlaylist", targetPlaylist)
+                .executeUpdate();
+            tx.commit();
+            System.out.println("Deleted " + count + " associations");
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+}
+
 
 } 
