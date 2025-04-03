@@ -10,6 +10,8 @@ import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.persistence.EntityManager;
+
 
 /**
  *
@@ -24,15 +26,23 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
     }
     
     public List<UserMovieRatingDTO> getMoviesFromPlaylist(UserPlaylist playlist, User user) {
-        return entityManager.createQuery(
-            "SELECT new com.mycompany.mymovielist.model.UserMovieRatingDTO(upm.movie, " +
-            "(SELECT umr FROM UserMovieRating umr WHERE umr.movie = upm.movie AND umr.user = :userIdParam)) " +
-            "FROM UserPlaylistMovies upm " +
-            "WHERE upm.userPlaylist.id = :playlistIdParam", UserMovieRatingDTO.class)
-            .setParameter("playlistIdParam", playlist.getId())
-            .setParameter("userIdParam", user)
-            .getResultList();
+        EntityManager em = EMFProvider.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT new com.mycompany.mymovielist.model.UserMovieRatingDTO(" +
+                    "upm.movie, " +
+                    "(SELECT umr FROM UserMovieRating umr WHERE umr.movie = upm.movie AND umr.user = :userIdParam)" +
+                ") " +
+                "FROM UserPlaylistMovies upm " +
+                "WHERE upm.userPlaylist.id = :playlistIdParam", UserMovieRatingDTO.class)
+                .setParameter("playlistIdParam", playlist.getId())
+                .setParameter("userIdParam", user)
+                .getResultList();
+        } finally {
+            em.close();
+        }
     }
+
     
     public void removeMovieFromPlaylist(UserPlaylist playlist, Movie movie) {
         // Ensure we're using managed entities

@@ -47,7 +47,8 @@ public class PlaylistService {
     public boolean addOrUpdateMovieInList(User user, Movie movie, Double rating, UserMovieRating.Status status, String listName) {
         try {
             // Check if there is an existing rating for this movie by the user
-            UserMovieRating movieRating = userMovieRepository.findByMovieAndUser(movie, user);
+            Optional<UserMovieRating> fetchedmovieRating = userMovieRepository.findByUserAndMovie(user, movie);
+            UserMovieRating movieRating = fetchedmovieRating.get();
 
             if (movieRating == null) {
                 // Create a new rating instance if not found

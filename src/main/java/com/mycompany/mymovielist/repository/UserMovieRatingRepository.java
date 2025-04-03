@@ -10,6 +10,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.NoResultException;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 /**
  *
@@ -31,16 +33,19 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
         .getResultList();
     }
     
-    public UserMovieRating findByMovieAndUser(Movie movie, User user) {
+    public Optional<UserMovieRating> findByUserAndMovie(User user, Movie movie) {
+        EntityManager em = EMFProvider.getEntityManager();
         try {
-            return entityManager.createQuery(
-                "SELECT umr FROM UserMovieRating umr " +
-                "WHERE umr.movie = :movie AND umr.user = :user", UserMovieRating.class)
-                .setParameter("movie", movie)
-                .setParameter("user", user)
-                .getSingleResult();
+            TypedQuery<UserMovieRating> query = em.createQuery(
+                "SELECT umr FROM UserMovieRating umr WHERE umr.user = :user AND umr.movie = :movie",
+                UserMovieRating.class);
+            query.setParameter("user", user);
+            query.setParameter("movie", movie);
+            return Optional.ofNullable(query.getSingleResult());
         } catch (NoResultException e) {
-            return null; 
+            return Optional.empty();
+        } finally {
+            em.close();
         }
     }
 }
