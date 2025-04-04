@@ -1,0 +1,46 @@
+<ui:composition template="/template.xhtml"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">Top Rated Movies</ui:define>
+    
+    <ui:define name="content">
+    <h3 style="text-align: center; color: #2c3e50; font-size: 2em; margin-bottom: 1em; border-bottom: 2px solid #ccc; padding-bottom: 0.5em;">
+        Top Rated Movies
+    </h3>
+        <!-- Container to hold cards side-by-side -->
+        <h:panelGroup layout="block" style="text-align:center;">
+            <ui:repeat value="#{topRatedBean.topRatedMovies}" var="movieDto" varStatus="loop">
+                <h:panelGroup layout="block" style="display:inline-block; vertical-align:top; width:20em; margin:0.5em; border:1px solid #ccc; padding:0.5em; position:relative;">
+                    
+                    <!-- Numbering badge at top left -->
+                    <h:outputText value="#{loop.index + 1}" style="position:absolute; top:0; left:0; background:#e74c3c; color:#fff; padding:2px 5px; font-weight:bold;" />
+                    
+                    <!-- Header -->
+                    <p:panel style="border:0; padding:0;">
+                        <f:facet name="header">
+                                <h3 style="margin:0;">#{movieDto.movie.title}</h3>
+                        </f:facet>
+                    </p:panel>
+                    
+                    <!-- Movie Image -->
+                    <h:graphicImage value="#{movieDto.movie.imageUrl}" alt="#{movieDto.movie.title}" style="width:100%; height:auto;" />
+                    
+                    <!-- Average Rating and Description -->
+                    <h:panelGroup style="margin-top:1em; display:block;">
+                        <p:rating value="#{movieDto.avgRatingInt}" stars="10" cancel="false" readonly="true" />
+                        <h:outputText value="(#{movieDto.avgRating})" />
+                    </h:panelGroup>
+                    
+                    <h:panelGroup layout="block" styleClass="movie-card-content">
+                        <h:outputText value="#{movieDto.movie.description}" style="padding:1em; text-align:center;" />
+                        <p:commandButton value="Add to list" action="#{movieViewBean.navigateToAddToList}" />
+                    </h:panelGroup>
+                </h:panelGroup>
+            </ui:repeat>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>

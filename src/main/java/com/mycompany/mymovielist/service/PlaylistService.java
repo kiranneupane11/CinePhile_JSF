@@ -70,7 +70,7 @@ public class PlaylistService {
             Optional<UserPlaylistMovies> existingAssociation = userPlayListMoviesRepository
                     .findByPlaylistAndMovie(targetPlaylist, movie);
             if (!existingAssociation.isPresent()) {
-                UserPlaylistMovies association = new UserPlaylistMovies(targetPlaylist, movieRating.getMovieID());
+                UserPlaylistMovies association = new UserPlaylistMovies(targetPlaylist, movieRating.getMovieId());
                 userPlayListMoviesRepository.add(association);
             }
 
@@ -123,7 +123,6 @@ public class PlaylistService {
             return false;
         }
         try {
-            // Now returns boolean instead of rows affected
             return userPlayListMoviesRepository.removeMovieInPlaylist(playlist, movie);
         } catch (Exception e) {
             e.printStackTrace();

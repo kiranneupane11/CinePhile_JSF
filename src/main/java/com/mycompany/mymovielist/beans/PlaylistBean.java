@@ -10,7 +10,6 @@ import javax.faces.context.FacesContext;
 import javax.faces.application.FacesMessage;
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Optional;
 import org.primefaces.event.TabChangeEvent;
 
@@ -71,8 +70,24 @@ public class PlaylistBean implements Serializable {
             }
         }
         
-        loadPlaylistsWithMovies();
-    }
+        String mId = FacesContext.getCurrentInstance().getExternalContext()
+                            .getRequestParameterMap().get("movieId");
+            if (mId != null && !mId.trim().isEmpty()) {
+                try {
+                    Long initialMovieId = Long.valueOf(mId);
+                    // Load the movie once if needed, then immediately clear the property.
+                    Optional<Movie> m = movieService.getMovieById(initialMovieId);
+                    if (m.isPresent()) {
+                        selectedMovie = m.get();
+                        System.out.println("Initial movie loaded: " + selectedMovie.getTitle());
+                    }
+                } catch(NumberFormatException e) {
+                    System.out.println("Invalid movieId parameter: " + mId);
+                }
+            }
+            // Clear movieId so it doesn't override later actions:
+            this.movieId = null;
+            loadPlaylistsWithMovies();    }
 
     private void loadPlaylistsWithMovies() {
         try {
@@ -201,7 +216,7 @@ public class PlaylistBean implements Serializable {
         }
 
         // Next, fetch the full movie entity using the movie ID from the UserMovieRatingDTO.
-        Optional<Movie> optionalMovie = movieService.getMovieById(usermovieRatingDTO.getMovieID());
+        Optional<Movie> optionalMovie = movieService.getMovieById(usermovieRatingDTO.getMovieId());
         if (!optionalMovie.isPresent()) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
@@ -221,44 +236,47 @@ public class PlaylistBean implements Serializable {
     }
 
 
-    public void editMovieFromPlaylist(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
-        this.isEditing = true;
-        // Fetch and set the correct playlist for this edit action
-        Optional<UserPlaylist> fetchedPlaylist = playlistService.getPlaylist(playlistWrapper.getPlaylistId(), loggedInUser);
-        if (fetchedPlaylist.isPresent()) {
-             this.selectedPlaylist = fetchedPlaylist.get();
-        } else {
-             FacesContext.getCurrentInstance().addMessage(null,
-                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch playlist."));
-             return;
-        }
-        // Set the movie id and load the movie entity for the selected rating
-        this.movieId = movieRating.getMovieID();
-        Optional<Movie> freshMovie = movieService.getMovieById(movieId);
-        if (freshMovie.isPresent()) {
-             this.selectedMovie = freshMovie.get();
-             System.out.println("Selected movie for editing: " + selectedMovie.getTitle());
-        } else {
-             FacesContext.getCurrentInstance().addMessage(null,
-                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch movie."));
-        }
-        // Update status and rating from the DTO
-        this.status = movieRating.getStatus() != null ? movieRating.getStatus().toString() : "Plan_To_Watch";
-        this.rating = movieRating.getRating() != null ? movieRating.getRatingAsInt() : 0;
+   public void editMovieFromPlaylist(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
+    this.isEditing = true;
+    // Clear the stale URL movieId
+    this.movieId = null;
+
+    // Fetch and set the correct playlist
+    Optional<UserPlaylist> fetchedPlaylist = playlistService.getPlaylist(playlistWrapper.getPlaylistId(), loggedInUser);
+    if (fetchedPlaylist.isPresent()) {
+         this.selectedPlaylist = fetchedPlaylist.get();
+    } else {
+         FacesContext.getCurrentInstance().addMessage(null,
+             new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch playlist."));
+         return;
     }
+    // Now load the movie using the movie ID from the passed rating DTO
+    Optional<Movie> freshMovie = movieService.getMovieById(movieRating.getMovieId());
+    if (freshMovie.isPresent()) {
+         this.selectedMovie = freshMovie.get();
+         System.out.println("Selected movie for editing: " + selectedMovie.getTitle());
+    } else {
+         FacesContext.getCurrentInstance().addMessage(null,
+             new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to fetch movie."));
+    }
+    this.status = movieRating.getStatus() != null ? movieRating.getStatus().toString() : "Plan_To_Watch";
+    this.rating = movieRating.getRating() != null ? movieRating.getRatingAsInt() : 0;
+}
+
+
 
 
     
     public void loadSelectedMovie() {
-        if (!isEditing) {
-            if (movieId != null) {
-                Optional<Movie> retrievedMovie = movieService.getMovieById(movieId);
-                if (retrievedMovie.isPresent()) {
-                    selectedMovie = retrievedMovie.get();
-                } else {
-                    FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
-                }
+        // Only load from URL if we haven't already selected a movie (i.e., not in edit mode)
+        if (!isEditing && selectedMovie == null && movieId != null) {
+            Optional<Movie> retrievedMovie = movieService.getMovieById(movieId);
+            if (retrievedMovie.isPresent()) {
+                selectedMovie = retrievedMovie.get();
+                System.out.println("Movie loaded from URL: " + selectedMovie.getTitle());
+            } else {
+                FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Movie not found."));
             }
         }
     }
@@ -291,10 +309,13 @@ public class PlaylistBean implements Serializable {
     public Long getMovieId() {
         return movieId;
     }
+    
     public void setMovieId(Long movieId) {
+    if (!FacesContext.getCurrentInstance().isPostback()) {
         System.out.println("setMovieId called with: " + movieId);
         this.movieId = movieId;
     }
+}
 
     public boolean isEditing() {
         return isEditing;

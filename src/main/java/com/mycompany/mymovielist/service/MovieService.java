@@ -4,8 +4,8 @@
  */
 package com.mycompany.mymovielist.service;
 
-import com.mycompany.mymovielist.model.Movie;
-import com.mycompany.mymovielist.repository.MovieRepository;
+import com.mycompany.mymovielist.model.*;
+import com.mycompany.mymovielist.repository.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,6 +21,9 @@ public class MovieService {
     
     @Inject
     private MovieRepository movieRepository;
+    
+    @Inject
+    private UserMovieRatingRepository userMovieRatingRepository;
 
     public List<Movie> getAvailableMovies() {
         return movieRepository.getAll();
@@ -28,5 +31,9 @@ public class MovieService {
 
     public Optional<Movie> getMovieById(long id) {
         return movieRepository.get(id);
+    }
+    
+    public List<TopRatedMovieDTO> getTopRatedMovies(){
+        return userMovieRatingRepository.findTopRatedMovies();
     }
 }

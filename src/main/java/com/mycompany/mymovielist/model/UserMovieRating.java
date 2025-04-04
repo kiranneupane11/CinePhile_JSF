@@ -59,7 +59,7 @@ public class UserMovieRating extends BaseEntity{
         this.status = status;
     }
      
-     public void setMovieID(Movie movieId){
+     public void setMovieId(Movie movieId){
          this.movie = movieId;
      }
     
@@ -71,7 +71,7 @@ public class UserMovieRating extends BaseEntity{
         return user;
     }
     
-    public Movie getMovieID(){
+    public Movie getMovieId(){
         return movie;
     }
 }

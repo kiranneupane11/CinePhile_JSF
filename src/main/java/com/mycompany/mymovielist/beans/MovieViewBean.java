@@ -28,9 +28,6 @@ public class MovieViewBean implements Serializable {
     @Inject
     private MovieService movieService;
     
-    @Inject
-    private PlaylistBean playlistBean;
-    
     private Movie selectedMovie;
     private List<Movie> availableMovies;
     private List<Movie> filteredMovies;    

@@ -12,6 +12,7 @@ import javax.inject.Named;
 import javax.persistence.NoResultException;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -48,4 +49,35 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
             em.close();
         }
     }
+    
+    public List<TopRatedMovieDTO> findTopRatedMovies() {
+        List<TopRatedMovieDTO> dtos = new ArrayList<>();
+        try {
+            entityManager.getTransaction().begin();
+
+            List<Object[]> results = entityManager.createQuery(
+                "SELECT umr.movie, AVG(umr.rating) as avgRating " +
+                "FROM UserMovieRating umr " +
+                "GROUP BY umr.movie " +
+                "HAVING COUNT(umr.rating) > 0 " +
+                "ORDER BY AVG(umr.rating) DESC", Object[].class)
+                .setMaxResults(10)
+                .getResultList();
+
+            for (Object[] row : results) {
+                Movie m = (Movie) row[0];
+                Double avg = (Double) row[1];
+                dtos.add(new TopRatedMovieDTO(m, avg));
+            }
+
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            e.printStackTrace();
+        }
+        return dtos;
+    }
+
 }
