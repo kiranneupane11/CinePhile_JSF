@@ -70,7 +70,7 @@ public class PlaylistService {
             Optional<UserPlaylistMovies> existingAssociation = userPlayListMoviesRepository
                     .findByPlaylistAndMovie(targetPlaylist, movie);
             if (!existingAssociation.isPresent()) {
-                UserPlaylistMovies association = new UserPlaylistMovies(targetPlaylist, movieRating.getMovieId());
+                UserPlaylistMovies association = new UserPlaylistMovies(targetPlaylist, movie);
                 userPlayListMoviesRepository.add(association);
             }
 
@@ -116,19 +116,28 @@ public class PlaylistService {
         return userPlaylistRepository.getListById(listId, user);
     }
     
-    @Transactional
-    public boolean removeMovieInPlaylist(UserPlaylist playlist, Movie movie, User user) {
-        if (!playlist.getUser().equals(user)) {
-            System.out.println("User does not own the playlist.");
-            return false;
+    public boolean removeMovieFromPlaylist(User user, PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
+    try {
+        Optional<UserPlaylist> optionalPlaylist = userPlaylistRepository.getListById(playlistWrapper.getPlaylistId(), user);
+        if (!optionalPlaylist.isPresent()) {
+            throw new Exception("Playlist not found.");
         }
-        try {
-            return userPlayListMoviesRepository.removeMovieInPlaylist(playlist, movie);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        UserPlaylist playlist = optionalPlaylist.get();
+
+        Optional<Movie> optionalMovie = movieRepository.get(movieRating.getMovieId());
+        if (!optionalMovie.isPresent()) {
+            throw new Exception("Movie not found.");
         }
+        Movie movie = optionalMovie.get();
+
+        userPlayListMoviesRepository.removeAssociation(playlist, movie);
+        return true;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
     }
+}
+
 
     public void deleteList(UserPlaylist playlist) {
         userPlayListMoviesRepository.removeByPlaylist(playlist);

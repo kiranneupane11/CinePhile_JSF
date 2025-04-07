@@ -79,5 +79,41 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
         }
         return dtos;
     }
+    
+   public List<TrendingMovieDTO> getTrendingMovies() {
+        // Query to get movies, watching count, and average rating
+        List<Object[]> results = entityManager.createQuery(
+                "SELECT m, COUNT(umr.user) as watchingCount, AVG(umr.rating) as avgRating " +
+                "FROM UserMovieRating umr " +
+                "JOIN umr.movie m " +
+                "WHERE umr.status = 'Watching' " +
+                "GROUP BY m " +
+                "ORDER BY watchingCount DESC", Object[].class)
+                .setMaxResults(10)
+                .getResultList();
+
+        List<TrendingMovieDTO> trendingMovies = new ArrayList<>();
+
+        for (Object[] result : results) {
+            Movie movie = (Movie) result[0];
+            Long watchingCount = (Long) result[1];
+            Double avgRating = (Double) result[2]; 
+
+            // Fetch a sample username
+            String sampleUsername = entityManager.createQuery(
+                    "SELECT u.username " +
+                    "FROM UserMovieRating umr " +
+                    "JOIN umr.user u " +
+                    "WHERE umr.movie = :movie AND umr.status = 'Watching'", String.class)
+                    .setParameter("movie", movie)
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            TrendingMovieDTO dto = new TrendingMovieDTO(sampleUsername, movie, "Watching", watchingCount, avgRating);
+            trendingMovies.add(dto);
+        }
+
+        return trendingMovies;
+    }
 
 }

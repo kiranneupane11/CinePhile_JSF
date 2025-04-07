@@ -36,4 +36,8 @@ public class MovieService {
     public List<TopRatedMovieDTO> getTopRatedMovies(){
         return userMovieRatingRepository.findTopRatedMovies();
     }
+    
+    public List<TrendingMovieDTO> getTrendingMovies(){
+        return userMovieRatingRepository.getTrendingMovies();
+    }
 }

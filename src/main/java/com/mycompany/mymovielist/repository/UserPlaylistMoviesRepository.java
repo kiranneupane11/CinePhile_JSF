@@ -46,21 +46,29 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
             .executeUpdate();
     }
     
-    public boolean removeMovieInPlaylist(UserPlaylist playlist, Movie movie) {
-        // Find the entity first
-        TypedQuery<UserPlaylistMovies> query = entityManager.createQuery(
-            "SELECT upm FROM UserPlaylistMovies upm WHERE upm.userPlaylist = :playlist AND upm.movie = :movie",
-            UserPlaylistMovies.class);
-        query.setParameter("playlist", playlist);
-        query.setParameter("movie", movie);
-        List<UserPlaylistMovies> results = query.getResultList();
-        if (results.isEmpty()) {
-            return false;
+    public void removeAssociation(UserPlaylist playlist, Movie movie) {
+    EntityManager em = EMFProvider.getEntityManager();
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        int count = em.createQuery(
+            "DELETE FROM UserPlaylistMovies upm WHERE upm.userPlaylist.id = :playlistId AND upm.movie.id = :movieId")
+            .setParameter("playlistId", playlist.getId())
+            .setParameter("movieId", movie.getId())
+            .executeUpdate();
+        tx.commit();
+        System.out.println("Deleted " + count + " association(s) for movie: " + movie.getTitle());
+    } catch (Exception e) {
+        if (tx.isActive()) {
+            tx.rollback();
         }
-        // Remove each found entity
-        results.forEach(entityManager::remove);
-        return true;
+        throw e;
+    } finally {
+        em.close();
     }
+}
+
+
     
     public Optional<UserPlaylistMovies> findByPlaylistAndMovie(UserPlaylist playlist, Movie movie) {
         TypedQuery<UserPlaylistMovies> query = entityManager.createQuery(

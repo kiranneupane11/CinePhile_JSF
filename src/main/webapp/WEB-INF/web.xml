@@ -12,6 +12,12 @@
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    
+    <context-param>
+        <param-name>primefaces.DEVELOPMENT</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
 
     <!-- Map FacesServlet to process .xhtml files -->
     <servlet-mapping>
