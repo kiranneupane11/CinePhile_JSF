@@ -15,7 +15,30 @@
            <p:ajax event="keyup" listener="#{movieViewBean.searchMovies()}" update="@form" />
         </p:inputText>
       </p:toolbarGroup>
-    </p:toolbar>
+      </p:toolbar>
+      
+         <!-- Filter button -->
+      <div style="text-align: right; margin: 20px 110px 20px 0;">
+        <p:menuButton value="Filter" 
+                      icon="pi pi-filter"
+                      style="width: 180px; height: 50px; font-size: 2rem; margin-right: 30px;"
+                      styleClass="ui-button-raised">
+            <p:menuitem value="Year (Descending)" 
+                        icon="pi pi-sort-numeric-down" 
+                        action="#{movieViewBean.filterByYearDescending}" 
+                        update="movieGrid" />
+            <p:menuitem value="Year (Ascending)" 
+                        icon="pi pi-sort-numeric-up" 
+                        action="#{movieViewBean.filterByYearAscending}" 
+                        update="movieGrid" />
+            <p:menuitem value="Genre" 
+                        icon="pi pi-tags" 
+                        action="#{movieViewBean.filterByGenre}" 
+                        update="movieGrid" />
+        </p:menuButton>
+    </div>
+      
+      
     <!-- Movie Grid -->
     <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
       <p:panel styleClass="movie-card">
@@ -57,7 +80,13 @@
                   <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
                     <h:dataTable value="#{movieViewBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
                       <h:column>
-                        <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
+                        <p:commandLink value="#{genre.trim()}" 
+                                       action="#{movieViewBean.filterByGenre()}" 
+                                       update="mainForm:movieGrid"
+                                       oncomplete="PF('movieDialog').hide();"
+                                       title="Click to view movies of this genre">
+                <f:setPropertyActionListener target="#{movieViewBean.filterGenre}" value="#{genre.trim()}" />
+            </p:commandLink>
                       </h:column>
                     </h:dataTable>
                   </h:panelGroup>

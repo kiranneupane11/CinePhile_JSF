@@ -33,7 +33,6 @@
               <!-- Show dropdown menu with username and icon when logged in -->
               <p:panel rendered="#{authenticationBean.loggedIn}" style="border: none; padding: 0; margin-left: 5px;">
                 <p:menuButton value="#{authenticationBean.loggedInUser.username}" icon="pi pi-user" styleClass="ui-button-secondary">
-                  <p:menuitem value="User Details" icon="pi pi-user-edit" />
                   <p:menuitem value="Logout" action="#{authenticationBean.logout}" update="@form" icon="pi pi-sign-out" />
                 </p:menuButton>
               </p:panel>

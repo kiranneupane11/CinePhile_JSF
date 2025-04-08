@@ -32,6 +32,8 @@ public class MovieViewBean implements Serializable {
     private List<Movie> availableMovies;
     private List<Movie> filteredMovies;
     private String searchTerm;
+    private Integer filterReleaseYear;
+    private String filterGenre;
     
     @PostConstruct
     public void init() {
@@ -40,15 +42,47 @@ public class MovieViewBean implements Serializable {
     }
     
     public void searchMovies() {
-    if (searchTerm == null || searchTerm.isEmpty()) {
-        filteredMovies = new ArrayList<>(availableMovies);
-    } else {
-        String lowerSearch = searchTerm.toLowerCase();
-        filteredMovies = availableMovies.stream()
-            .filter(movie -> movie.getTitle().toLowerCase().contains(lowerSearch))
-            .collect(Collectors.toList());
+        if (searchTerm == null || searchTerm.isEmpty()) {
+            filteredMovies = new ArrayList<>(availableMovies);
+        } else {
+            String lowerSearch = searchTerm.toLowerCase();
+            filteredMovies = availableMovies.stream()
+                .filter(movie -> movie.getTitle().toLowerCase().contains(lowerSearch))
+                .collect(Collectors.toList());
+        }
     }
-}
+    
+    public void filterByYearDescending() {
+        filteredMovies = movieService.getMoviesOrderByYearDesc();
+    }
+    
+    public void filterByYearAscending() {
+        filteredMovies = movieService.getMoviesOrderByYearAsc();
+    }
+    
+    public void filterByGenre() {
+        if (filterGenre != null && !filterGenre.trim().isEmpty()) {
+            filteredMovies = movieService.getMoviesByGenre(filterGenre);
+        } else {
+            filteredMovies = new ArrayList<>(availableMovies);
+        }
+    }
+    
+    public Integer getFilterReleaseYear() {
+        return filterReleaseYear;
+    }
+
+    public void setFilterReleaseYear(Integer filterReleaseYear) {
+        this.filterReleaseYear = filterReleaseYear;
+    }
+    
+    public String getFilterGenre() {
+        return filterGenre;
+    }
+
+    public void setFilterGenre(String filterGenre) {
+        this.filterGenre = filterGenre;
+    }
     
     public void selectMovie(Movie movie) {
         selectedMovie = movie;

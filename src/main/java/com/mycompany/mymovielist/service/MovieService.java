@@ -33,6 +33,18 @@ public class MovieService {
         return movieRepository.get(id);
     }
     
+    public List<Movie> getMoviesOrderByYearDesc() {
+        return movieRepository.findAllOrderByReleaseYearDesc();
+    }
+    
+    public List<Movie> getMoviesOrderByYearAsc() {
+        return movieRepository.findAllOrderByReleaseYearAsc();
+    }
+    
+    public List<Movie> getMoviesByGenre(String genre) {
+        return movieRepository.findByGenre(genre);
+    }
+    
     public List<TopRatedMovieDTO> getTopRatedMovies(){
         return userMovieRatingRepository.findTopRatedMovies();
     }
