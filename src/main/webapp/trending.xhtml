@@ -8,6 +8,16 @@
     <ui:define name="title">Trending Movies</ui:define>
     
     <ui:define name="content">
+        <p:toolbar style="width: 100%;">
+      <p:toolbarGroup align="left" style="width: 100%;">
+       <p:inputText id="searchTerm" 
+                    value="#{trendingBean.trendingSearchTerm}" 
+            placeholder="Search movies ..." 
+            style="width: 100%;">
+           <p:ajax event="keyup" listener="#{trendingBean.searchTrendingMovies()}" update="@form" />
+        </p:inputText>
+      </p:toolbarGroup>
+    </p:toolbar>
         <h:form id="trendingForm">
             <h3 style="text-align: center; color: #2c3e50; font-size: 2em; margin-bottom: 1em; border-bottom: 2px solid #ccc; padding-bottom: 0.5em;">
                 Trending Movies
@@ -16,7 +26,7 @@
             <p:messages id="messages" showDetail="true"/>
             <!-- Container to hold cards side-by-side -->
             <h:panelGroup layout="block" style="text-align:center;">
-                <ui:repeat value="#{trendingBean.trendingMovies}" var="trendingMovie" varStatus="loop">
+                <ui:repeat value="#{trendingBean.filteredTrendingMovies}" var="trendingMovie" varStatus="loop">
                     <h:panelGroup layout="block" style="display:inline-block; vertical-align:top; width:20em; margin:0.5em; border:1px solid #ccc; padding:0.5em; position:relative;"
                                   rendered="#{trendingMovie != null}">
                         

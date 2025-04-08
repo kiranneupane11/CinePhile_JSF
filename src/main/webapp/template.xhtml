@@ -16,19 +16,26 @@
       <!-- Header with Logo and Authentication Controls -->
       <p:toolbar style="width: 100%;">
         <f:facet name="left">
+            <h:link outcome="/availablemovies.xhtml">
           <p:graphicImage name="logo-no-background.svg" library="logos" alt="Cinephile Logo" height="150" width="150" />
+          </h:link>
         </f:facet>
         <f:facet name="right">
           <h:panelGroup layout="block" style="display: flex; align-items: center;">
             <h:panelGroup layout="block">
+              <!-- Show Login and Sign Up buttons when not logged in -->
               <p:panel rendered="#{not authenticationBean.loggedIn}" style="border: none; padding: 0;">
                 <p:button value="Login" outcome="/login.xhtml" styleClass="ui-button-info" />
               </p:panel>
               <p:panel rendered="#{not authenticationBean.loggedIn}" style="border: none; padding: 0; margin-left: 5px;">
                 <p:button value="Sign Up" outcome="/signup.xhtml" styleClass="ui-button-success" />
               </p:panel>
+              <!-- Show dropdown menu with username and icon when logged in -->
               <p:panel rendered="#{authenticationBean.loggedIn}" style="border: none; padding: 0; margin-left: 5px;">
-                <p:commandButton value="Logout" action="#{authenticationBean.logout}" update="@form" styleClass="ui-button-danger" />
+                <p:menuButton value="#{authenticationBean.loggedInUser.username}" icon="pi pi-user" styleClass="ui-button-secondary">
+                  <p:menuitem value="User Details" icon="pi pi-user-edit" />
+                  <p:menuitem value="Logout" action="#{authenticationBean.logout}" update="@form" icon="pi pi-sign-out" />
+                </p:menuButton>
               </p:panel>
             </h:panelGroup>
           </h:panelGroup>
@@ -46,17 +53,6 @@
           </p:menubar>
         </p:toolbarGroup>
       </p:toolbar>
-      
-      <p:toolbar style="width: 100%;">
-      <p:toolbarGroup align="left" style="width: 100%;">
-        <p:inputText id="searchTerm" 
-                     value="#{movieViewBean.searchTerm}" 
-                     placeholder="Search movies, lists..." 
-                     style="width: 100%;">
-          <p:ajax event="keyup" listener="#{movieViewBean.searchMovies}" />
-        </p:inputText>
-      </p:toolbarGroup>
-    </p:toolbar>
 
       <!-- Content Area for Page-Specific Content -->
       <ui:insert name="content">Default Content</ui:insert>

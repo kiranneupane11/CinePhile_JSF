@@ -130,13 +130,24 @@ public class PlaylistService {
         }
         Movie movie = optionalMovie.get();
 
+        // Remove association based on IDs rather than object references.
         userPlayListMoviesRepository.removeAssociation(playlist, movie);
+
+        // Option 1: Re-fetch the playlist to ensure fresh data.
+        // This forces a new query, bypassing any cached state.
+        Optional<UserPlaylist> refreshedPlaylist = userPlaylistRepository.getListById(playlistWrapper.getPlaylistId(), user);
+        if (!refreshedPlaylist.isPresent()) {
+            throw new Exception("Playlist not found during refresh.");
+        }
+        System.out.println("Refreshed playlist id after removal: " + refreshedPlaylist.get().getId());
+
         return true;
     } catch (Exception e) {
         e.printStackTrace();
         return false;
     }
 }
+
 
 
     public void deleteList(UserPlaylist playlist) {

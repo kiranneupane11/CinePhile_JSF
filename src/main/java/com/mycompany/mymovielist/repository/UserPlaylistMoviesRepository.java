@@ -57,6 +57,7 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
             .setParameter("movieId", movie.getId())
             .executeUpdate();
         tx.commit();
+        em.clear();
         System.out.println("Deleted " + count + " association(s) for movie: " + movie.getTitle());
     } catch (Exception e) {
         if (tx.isActive()) {
@@ -67,8 +68,6 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
         em.close();
     }
 }
-
-
     
     public Optional<UserPlaylistMovies> findByPlaylistAndMovie(UserPlaylist playlist, Movie movie) {
         TypedQuery<UserPlaylistMovies> query = entityManager.createQuery(

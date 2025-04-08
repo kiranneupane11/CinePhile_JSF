@@ -15,6 +15,8 @@ import com.mycompany.mymovielist.model.*;
 import javax.faces.context.FacesContext;
 import javax.faces.application.FacesMessage;
 import java.util.Collections;
+import java.util.stream.Collectors;
+
 /**
  *
  * @author kiran
@@ -27,28 +29,42 @@ public class TrendingBean implements Serializable {
     private MovieService movieService;
     
     private List<TrendingMovieDTO> trendingMovies = new ArrayList<>();
+    private String trendingSearchTerm;
+    private List<TrendingMovieDTO> filteredTrendingMovies;
     
     @PostConstruct
     public void init() {
-        loadTrendingMovies();
+        this.trendingMovies = movieService.getTrendingMovies();
+        this.filteredTrendingMovies = new ArrayList<>(trendingMovies);
+    }
+    
+    public void searchTrendingMovies() {
+        String search = (trendingSearchTerm == null) ? "" : trendingSearchTerm.toLowerCase();
+        if (search.isEmpty()) {
+            filteredTrendingMovies = new ArrayList<>(getTrendingMovies());
+        } else {
+            filteredTrendingMovies = getTrendingMovies().stream()
+                    .filter(movie -> movie.getMovie().getTitle().toLowerCase().contains(search))
+                    .collect(Collectors.toList());
+        }
+        System.out.println("Filtered Trending Movies count: " + filteredTrendingMovies.size());
+    }
+    
+    public List<TrendingMovieDTO> getTrendingMovies() {
+        return trendingMovies;
+}
+        
+    public String getTrendingSearchTerm() {
+        return trendingSearchTerm;
+    }
+    public void setTrendingSearchTerm(String trendingSearchTerm) {
+        this.trendingSearchTerm = trendingSearchTerm;
+    }
+    public List<TrendingMovieDTO> getFilteredTrendingMovies() {
+        return filteredTrendingMovies;
+    }
+    public void setFilteredTrendingMovies(List<TrendingMovieDTO> filteredTrendingMovies) {
+        this.filteredTrendingMovies = filteredTrendingMovies;
     }
 
-    private void loadTrendingMovies(){
-        try {
-            trendingMovies = movieService.getTrendingMovies();
-            if (trendingMovies.isEmpty()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning", "No trending movies available."));
-            }
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to load trending movies: " + e.getMessage()));
-            trendingMovies = Collections.emptyList();
-        }
-    }
-    
-        public List<TrendingMovieDTO> getTrendingMovies() {
-            return trendingMovies;
-    }
-    
 }

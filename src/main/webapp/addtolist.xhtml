@@ -58,11 +58,11 @@
                                     <p:column styleClass="ui-g-3" style="vertical-align: top;">
                                         <h:panelGroup styleClass="right-column-content">
                                             <p:commandButton value="Remove"
-                                                             icon="pi pi-trash"
-                                                             action="#{playlistBean.removeMovieFromPlaylist(playlistWrapper, usermovieRating)}"
-                                                             update=":mainForm:playlistTabView :mainForm:growl" 
-                                                             styleClass="ui-button-danger" 
-                                                             process="@form" />
+                                                            icon="pi pi-trash"
+                                                            action="#{playlistBean.prepareRemoveDialog(playlistWrapper, usermovieRating)}"
+                                                            oncomplete="PF('removeDialog').show()"
+                                                            update=":mainForm:removeDialogForm, :mainForm:growl"
+                                                            styleClass="ui-button-danger" process="@this" />
                                             <p:commandButton value="Edit" 
                                                             icon="pi pi-pencil"
                                                             action="#{playlistBean.prepareEditMovie(playlistWrapper, usermovieRating)}"
@@ -144,6 +144,26 @@
                              oncomplete="PF('editDialog').hide()" process="@form" />
         </h:form>
         </p:dialog>
+            
+            <p:dialog id="removeDialog" widgetVar="removeDialog" header="Confirm Removal" modal="true" resizable="false" appendTo="@(body)" >
+                <h:form id="removeDialogForm">
+                    <h:outputText value="Are you sure you want to remove  " />
+                    <br/><br/>
+                    <h:graphicImage value="#{playlistBean.removeMovieRating.imageUrl}" 
+                                      style="width: 100px; height: 150px; display: block; margin: 0 auto;" 
+                                      rendered="#{not empty playlistBean.removeMovieRating.imageUrl}"/>
+                        <h:outputText value="#{playlistBean.removeMovieRating.title}" 
+                                    style="font-size: 18px; font-weight: bold; display: block; margin-top: 10px;" 
+                                    rendered="#{not empty playlistBean.removeMovieRating}"/>
+                    <h:outputText value=" from " />
+                    <h:outputText value="#{playlistBean.removePlaylistWrapper.listName}" style="font-weight:bold;" />
+                    <br/><br/>
+                    <p:commandButton value="Yes" action="#{playlistBean.confirmRemove}" 
+                                     update="@form :mainForm:growl" 
+                                     oncomplete="PF('removeDialog').hide()" process="@form" />
+                    <p:commandButton value="No" onclick="PF('removeDialog').hide();" type="button" />
+                </h:form>
+            </p:dialog>
 
 
             <h:outputScript>

@@ -30,7 +30,7 @@ public class MovieViewBean implements Serializable {
     
     private Movie selectedMovie;
     private List<Movie> availableMovies;
-    private List<Movie> filteredMovies;    
+    private List<Movie> filteredMovies;
     private String searchTerm;
     
     @PostConstruct
@@ -40,15 +40,15 @@ public class MovieViewBean implements Serializable {
     }
     
     public void searchMovies() {
-        if (searchTerm == null || searchTerm.isEmpty()) {
-            filteredMovies = new ArrayList<>(availableMovies);
-        } else {
-            String lowerSearch = searchTerm.toLowerCase();
-            filteredMovies = availableMovies.stream()
-                .filter(movie -> movie.getTitle().toLowerCase().contains(lowerSearch))
-                .collect(Collectors.toList());
-        }
+    if (searchTerm == null || searchTerm.isEmpty()) {
+        filteredMovies = new ArrayList<>(availableMovies);
+    } else {
+        String lowerSearch = searchTerm.toLowerCase();
+        filteredMovies = availableMovies.stream()
+            .filter(movie -> movie.getTitle().toLowerCase().contains(lowerSearch))
+            .collect(Collectors.toList());
     }
+}
     
     public void selectMovie(Movie movie) {
         selectedMovie = movie;
@@ -70,9 +70,12 @@ public class MovieViewBean implements Serializable {
     public String getSearchTerm() {
         return searchTerm;
     }
+    
     public void setSearchTerm(String searchTerm) {
         this.searchTerm = searchTerm;
-        searchMovies();
+        if (availableMovies != null) {
+            searchMovies();
+        }
     }
     
     public int getSelectedMovieRatingAsInt() {

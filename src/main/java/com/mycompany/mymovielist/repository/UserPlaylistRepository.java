@@ -27,6 +27,7 @@ public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Lon
         return entityManager.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user",
             UserPlaylist.class)
             .setParameter("user", user)
+            .setHint("javax.persistence.cache.storeMode", "REFRESH")
             .getResultList();
     }
     

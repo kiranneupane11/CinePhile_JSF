@@ -6,6 +6,16 @@
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
   <ui:define name="title">Available Movies</ui:define>
   <ui:define name="content">
+      <p:toolbar style="width: 100%;">
+      <p:toolbarGroup align="left" style="width: 100%;">
+       <p:inputText id="searchTerm" 
+                    value="#{movieViewBean.searchTerm}" 
+            placeholder="Search movies ..." 
+            style="width: 100%;">
+           <p:ajax event="keyup" listener="#{movieViewBean.searchMovies()}" update="@form" />
+        </p:inputText>
+      </p:toolbarGroup>
+    </p:toolbar>
     <!-- Movie Grid -->
     <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
       <p:panel styleClass="movie-card">

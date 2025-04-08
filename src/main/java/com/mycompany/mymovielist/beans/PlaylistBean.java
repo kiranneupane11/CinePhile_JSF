@@ -43,6 +43,8 @@ public class PlaylistBean implements Serializable {
     private Movie editMovie;
     private String editStatus;
     private int editRating;
+    private PlaylistDTO removePlaylistWrapper;
+    private UserMovieRatingDTO removeMovieRating;
 
     @PostConstruct
     public void init() {
@@ -118,15 +120,13 @@ public class PlaylistBean implements Serializable {
             return;
         }
         try {
-            // Convert String status to enum (adjust the conversion as needed)
+            // Convert String status to enum 
             UserMovieRating.Status enumStatus = UserMovieRating.Status.valueOf(status.replace(" ", "_"));
 
             double ratingToUse = rating;
             
-            // Map status to listName for display purposes (remove underscores)
             listName = status.replace("_", " ");
 
-            // Use the combined method
             boolean success = playlistService.addOrUpdateMovieInList(loggedInUser, selectedMovie, ratingToUse, enumStatus, listName);
             if (success) {
                 FacesContext.getCurrentInstance().addMessage(null,
@@ -209,12 +209,22 @@ public class PlaylistBean implements Serializable {
         }
     }
 
-    public void removeMovieFromPlaylist(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
+    public void prepareRemoveDialog(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
+        this.removePlaylistWrapper = playlistWrapper;
+        this.removeMovieRating = movieRating;
+        // log details
+        System.out.println("Preparing to remove movie: " + movieRating.getTitle() +
+                           " from playlist: " + playlistWrapper.getListName());
+    }
+    
+    public void confirmRemove() {
     try {
-        boolean success = playlistService.removeMovieFromPlaylist(loggedInUser, playlistWrapper, movieRating);
+        boolean success = playlistService.removeMovieFromPlaylist(loggedInUser, removePlaylistWrapper, removeMovieRating);
         if (success) {
+            loadPlaylistsWithMovies();
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie removed from playlist successfully!"));
+            // Reload data model to reflect the change
             loadPlaylistsWithMovies();
         } else {
             FacesContext.getCurrentInstance().addMessage(null,
@@ -226,6 +236,8 @@ public class PlaylistBean implements Serializable {
         e.printStackTrace();
     }
 }
+
+
 
 
    public void prepareEditMovie(PlaylistDTO playlist, UserMovieRatingDTO movieRating) {
@@ -376,6 +388,19 @@ public class PlaylistBean implements Serializable {
     public void setEditRating(int editRating) {
         this.editRating = editRating;
     }
+    
+    public PlaylistDTO getRemovePlaylistWrapper() {
+        return removePlaylistWrapper;
+    }
+    public void setRemovePlaylistWrapper(PlaylistDTO removePlaylistWrapper) {
+        this.removePlaylistWrapper = removePlaylistWrapper;
+    }
 
+    public UserMovieRatingDTO getRemoveMovieRating() {
+        return removeMovieRating;
+    }
+    public void setRemoveMovieRating(UserMovieRatingDTO removeMovieRating) {
+        this.removeMovieRating = removeMovieRating;
+    }
 
 }
