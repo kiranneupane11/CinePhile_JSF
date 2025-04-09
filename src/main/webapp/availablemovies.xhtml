@@ -53,6 +53,15 @@
         </p:commandLink>  
       </p:panel>
     </p:dataGrid>
+    
+    <!-- Genre Filter Message -->
+    <h:panelGroup id="genreMessage" 
+                    layout="block" 
+                    style="text-align: center; margin: 20px 0;"
+                    rendered="#{not empty movieViewBean.filterGenre}">
+          <h:outputText value="Search results for Genre: #{movieViewBean.filterGenre}" 
+                        style="font-size: 2.5rem; font-weight: bold; color: #2c3e50;" />
+      </h:panelGroup>
 
     <!-- Movie Details Dialog -->
     <p:dialog id="movieDialog" 
@@ -82,7 +91,7 @@
                       <h:column>
                         <p:commandLink value="#{genre.trim()}" 
                                        action="#{movieViewBean.filterByGenre()}" 
-                                       update="mainForm:movieGrid"
+                                       update="mainForm:movieGrid :mainForm:genreMessage"
                                        oncomplete="PF('movieDialog').hide();"
                                        title="Click to view movies of this genre">
                 <f:setPropertyActionListener target="#{movieViewBean.filterGenre}" value="#{genre.trim()}" />

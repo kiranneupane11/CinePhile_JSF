@@ -5,8 +5,8 @@
 package com.mycompany.mymovielist.beans;
 import com.mycompany.mymovielist.service.AuthenticationService;
 import com.mycompany.mymovielist.model.User;
-import com.mycompany.mymovielist.util.PasswordUtil;
-import java.util.Optional;
+import com.mycompany.mymovielist.util.*;
+import java.util.*;
 import javax.enterprise.context.SessionScoped; 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -88,6 +88,12 @@ public class AuthenticationBean implements Serializable {
         Optional<User> userOpt = authService.login(usernameOrEmail, password);
             if(userOpt.isPresent()){
                 loggedInUser = userOpt.get();
+                String token = JwtUtil.generateToken(loggedInUser.getUsername());
+                Map<String, Object> cookieProps = new HashMap<>();
+                cookieProps.put("path", "/");
+                cookieProps.put("httpOnly", true);
+                FacesContext.getCurrentInstance().getExternalContext()
+                    .addResponseCookie("jwtToken", token, cookieProps);
                 message = "Login Successful!";
             } else{
                 message = "Invalid username or password.";
@@ -99,6 +105,11 @@ public class AuthenticationBean implements Serializable {
     
     public String logout() {
         loggedInUser = null;
+        Map<String, Object> cookieProps = new HashMap<>();
+        cookieProps.put("path", "/");
+        cookieProps.put("maxAge", 0);
+        FacesContext.getCurrentInstance().getExternalContext()
+            .addResponseCookie("token", null, cookieProps);
         FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
         return "login?faces-redirect=true";
     }
