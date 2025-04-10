@@ -36,47 +36,52 @@
 
             <p:growl id="growl" showDetail="true"/>
             
-            <div class="card">
-                <p:tabView id="playlistTabView" value="#{playlistBean.playlistsWithMovies}" var="playlistWrapper" cache="false" dynamic="true">
-                    <p:ajax event="tabChange" listener="#{playlistBean.onTabChange}" update="playlistTabView" />
-                    <p:tab id="playlistTab" title="#{playlistWrapper.listName}">
-                        <ui:repeat value="#{playlistWrapper.movies}" var="usermovieRating">
-                            <p:panel style="margin-bottom: 10px;">
-                                <p:row>
-                                    <p:column styleClass="ui-g-3" style="text-align: left; vertical-align: top;">
-                                        <h:graphicImage value="#{usermovieRating.imageUrl}" style="width: 100px; height: 150px; display: block;" />
-                                    </p:column>
-                                    <p:column styleClass="ui-g-6" style="vertical-align: top;">
-                                        <h3 style="margin-bottom: 5px;">#{usermovieRating.title}</h3>
-                                        <p style="margin-bottom: 5px;">#{usermovieRating.description}</p>
-                                        <h:outputText styleClass="genre-item" value="#{usermovieRating.genre}" />
-                                        <p:rating readonly="true" value="#{usermovieRating.ratingAsInt}" stars="10" styleClass="rating-value" style="margin-bottom: 5px;"
-                                                  rendered="#{playlistWrapper.listName eq 'Watched' or playlistWrapper.listName eq 'Dropped'}"/>
-                                        <h:outputText value=" " rendered="#{not (playlistWrapper.listName eq 'Watched' or playlistWrapper.listName eq 'Dropped')}"
-                                                          style="display: block; height: 1.5rem;" />
-                                    </p:column>
-                                    <p:column styleClass="ui-g-3" style="vertical-align: top;">
-                                        <h:panelGroup styleClass="right-column-content">
-                                            <p:commandButton value="Remove"
-                                                            icon="pi pi-trash"
-                                                            action="#{playlistBean.prepareRemoveDialog(playlistWrapper, usermovieRating)}"
-                                                            oncomplete="PF('removeDialog').show()"
-                                                            update=":mainForm:removeDialogForm, :mainForm:growl"
-                                                            styleClass="ui-button-danger" process="@this" />
-                                            <p:commandButton value="Edit" 
-                                                            icon="pi pi-pencil"
-                                                            action="#{playlistBean.prepareEditMovie(playlistWrapper, usermovieRating)}"
-                                                            update=":mainForm:editDialogForm, :mainForm:playlistTabView :mainForm:playlistTabView:playlistTab :mainForm:growl" 
-                                                            oncomplete="PF('editDialog').show()"
-                                                            styleClass="ui-button-info" process="@this" />
-                                        </h:panelGroup>
-                                    </p:column>
-                                </p:row>
-                            </p:panel>
-                        </ui:repeat>
-                    </p:tab>
-                </p:tabView>
-            </div>
+           <div class="card">
+    <p:tabView id="playlistTabView" value="#{playlistBean.playlists}" var="playlistWrapper" cache="false" dynamic="true" widgetVar="playlistTV">
+        <p:ajax event="tabChange" listener="#{playlistBean.onTabChange}" update="playlistTabView" />
+        <p:tab id="playlistTab" title="#{playlistWrapper.listName}">
+            <!-- Pass the playlist id for lazy loading -->
+            <f:attribute name="playlistId" value="#{playlistWrapper.playlistId}" />
+            <ui:repeat value="#{playlistWrapper.movies}" var="usermovieRating">
+                <p:panel style="margin-bottom: 10px;">
+                    <p:row>
+                        <p:column styleClass="ui-g-3" style="text-align: left; vertical-align: top;">
+                            <h:graphicImage value="#{usermovieRating.imageUrl}" 
+                                            style="width: 100px; height: 150px; display: block;" />
+                        </p:column>
+                        <p:column styleClass="ui-g-6" style="vertical-align: top;">
+                            <h3 style="margin-bottom: 5px;">#{usermovieRating.title}</h3>
+                            <p style="margin-bottom: 5px;">#{usermovieRating.description}</p>
+                            <h:outputText styleClass="genre-item" value="#{usermovieRating.genre}" />
+                            <p:rating readonly="true" value="#{usermovieRating.ratingAsInt}" 
+                                      stars="10" styleClass="rating-value" style="margin-bottom: 5px;"
+                                      rendered="#{playlistWrapper.listName eq 'Watched' or playlistWrapper.listName eq 'Dropped'}"/>
+                            <h:outputText value=" " rendered="#{not (playlistWrapper.listName eq 'Watched' or playlistWrapper.listName eq 'Dropped')}"
+                                          style="display: block; height: 1.5rem;" />
+                        </p:column>
+                        <p:column styleClass="ui-g-3" style="vertical-align: top;">
+                            <h:panelGroup styleClass="right-column-content">
+                                <p:commandButton value="Remove"
+                                                 icon="pi pi-trash"
+                                                 action="#{playlistBean.prepareRemoveDialog(playlistWrapper, usermovieRating)}"
+                                                 oncomplete="PF('removeDialog').show()"
+                                                 update=":mainForm:removeDialogForm, :mainForm:growl"
+                                                 styleClass="ui-button-danger" process="@this" />
+                                <p:commandButton value="Edit" 
+                                                 icon="pi pi-pencil"
+                                                 action="#{playlistBean.prepareEditMovie(playlistWrapper, usermovieRating)}"
+                                                 update=":mainForm:editDialogForm, :mainForm:playlistTabView :mainForm:playlistTabView:playlistTab :mainForm:growl" 
+                                                 oncomplete="PF('editDialog').show()"
+                                                 styleClass="ui-button-info" process="@this" />
+                            </h:panelGroup>
+                        </p:column>
+                    </p:row>
+                </p:panel>
+            </ui:repeat>
+        </p:tab>
+    </p:tabView>
+</div>
+
 
             <p:dialog id="addToListDialog" widgetVar="addToListDialog" header="Add Movie to List" modal="true" appendTo="@(body)" resizable="false" visible="false" dynamic="true">
                 <h:form id="addToListDialogForm">
@@ -166,13 +171,15 @@
             </p:dialog>
 
 
-            <h:outputScript>
-                $(document).ready(function() {
-                    if (#{not empty playlistBean.movieId}) {
-                        PF('addToListDialog').show();
-                    }
-                });
-            </h:outputScript>
+           <h:outputScript>
+            setTimeout(function() {
+                // Ensure that playlistBean.movieId is not null
+                if(#{playlistBean.movieId != null}) {
+                    PF('addToListDialog').show();
+                }
+            }, 100); 
+        </h:outputScript>
+
         </ui:define>
     </ui:composition>
 </html>

@@ -32,27 +32,39 @@ public class TrendingBean implements Serializable {
     private String trendingSearchTerm;
     private List<TrendingMovieDTO> filteredTrendingMovies;
     
-    @PostConstruct
-    public void init() {
-        this.trendingMovies = movieService.getTrendingMovies();
-        this.filteredTrendingMovies = new ArrayList<>(trendingMovies);
+    public List<TrendingMovieDTO> getFilteredTrendingMovies() {
+        if (filteredTrendingMovies == null) {
+            loadTrendingMovies();
+        }
+        return filteredTrendingMovies;
+    }
+    
+    private void loadTrendingMovies() {
+        filteredTrendingMovies = movieService.getTrendingMovies();
+        if (trendingSearchTerm != null && !trendingSearchTerm.isEmpty()) {
+            applySearchFilter();
+        }
     }
     
     public void searchTrendingMovies() {
-        String search = (trendingSearchTerm == null) ? "" : trendingSearchTerm.toLowerCase();
-        if (search.isEmpty()) {
-            filteredTrendingMovies = new ArrayList<>(getTrendingMovies());
-        } else {
-            filteredTrendingMovies = getTrendingMovies().stream()
-                    .filter(movie -> movie.getMovie().getTitle().toLowerCase().contains(search))
-                    .collect(Collectors.toList());
+        if (filteredTrendingMovies == null) {
+            loadTrendingMovies();
         }
-        System.out.println("Filtered Trending Movies count: " + filteredTrendingMovies.size());
+        applySearchFilter();
+    }
+    
+    private void applySearchFilter() {
+        String search = trendingSearchTerm.toLowerCase();
+        filteredTrendingMovies = filteredTrendingMovies.stream()
+            .filter(movie -> 
+                movie.getMovie().getTitle().toLowerCase().contains(search)
+            )
+            .collect(Collectors.toList());
     }
     
     public List<TrendingMovieDTO> getTrendingMovies() {
         return trendingMovies;
-}
+    }
         
     public String getTrendingSearchTerm() {
         return trendingSearchTerm;
@@ -60,9 +72,7 @@ public class TrendingBean implements Serializable {
     public void setTrendingSearchTerm(String trendingSearchTerm) {
         this.trendingSearchTerm = trendingSearchTerm;
     }
-    public List<TrendingMovieDTO> getFilteredTrendingMovies() {
-        return filteredTrendingMovies;
-    }
+    
     public void setFilteredTrendingMovies(List<TrendingMovieDTO> filteredTrendingMovies) {
         this.filteredTrendingMovies = filteredTrendingMovies;
     }

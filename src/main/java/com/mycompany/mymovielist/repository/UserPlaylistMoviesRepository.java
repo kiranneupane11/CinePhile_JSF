@@ -11,9 +11,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.criteria.*;
 /**
  *
  * @author kiran
@@ -106,6 +106,41 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
         } finally {
             em.close();
         }
+    }
+   
+    public List<UserMovieRatingDTO> getMoviesFromPlaylistLazy(UserPlaylist playlist, User user) {
+    // First, retrieve movies from the playlist.
+    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Movie> movieCq = cb.createQuery(Movie.class);
+    Root<UserPlaylistMovies> upm = movieCq.from(UserPlaylistMovies.class);
+    Join<UserPlaylistMovies, Movie> movieJoin = upm.join("movie", JoinType.INNER);
+    movieCq.select(movieJoin)
+           .where(cb.equal(upm.get("userPlaylist"), playlist));
+    
+    List<Movie> movies = entityManager.createQuery(movieCq)
+                               .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                               .getResultList();
+    
+    // Now, for each movie, fetch its corresponding UserMovieRating
+    List<UserMovieRatingDTO> result = new ArrayList<>();
+    for (Movie movie : movies) {
+        CriteriaQuery<UserMovieRating> ratingCq = cb.createQuery(UserMovieRating.class);
+        Root<UserMovieRating> umr = ratingCq.from(UserMovieRating.class);
+        ratingCq.select(umr)
+                .where(
+                    cb.equal(umr.get("movie"), movie),
+                    cb.equal(umr.get("user"), user)
+                );
+        
+        UserMovieRating rating = entityManager.createQuery(ratingCq)
+                                      .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                                      .getSingleResult();
+                                      
+        // Construct DTO (assuming the DTO has a constructor accepting a Movie and a UserMovieRating)
+        result.add(new UserMovieRatingDTO(movie, rating));
+    }
+    
+    return result;
 }
 
 

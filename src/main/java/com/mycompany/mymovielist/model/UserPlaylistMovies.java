@@ -14,7 +14,7 @@ import javax.persistence.*;
 @Table(name = "user_playlist_movies", uniqueConstraints = @UniqueConstraint(columnNames = {"user_playlist_id", "movie_id"}))
 public class UserPlaylistMovies extends BaseEntity {
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_playlist_id", nullable = false)
     private UserPlaylist userPlaylist;
     

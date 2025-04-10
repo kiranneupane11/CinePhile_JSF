@@ -130,11 +130,9 @@ public class PlaylistService {
         }
         Movie movie = optionalMovie.get();
 
-        // Remove association based on IDs rather than object references.
+        // Remove association 
         userPlayListMoviesRepository.removeAssociation(playlist, movie);
 
-        // Option 1: Re-fetch the playlist to ensure fresh data.
-        // This forces a new query, bypassing any cached state.
         Optional<UserPlaylist> refreshedPlaylist = userPlaylistRepository.getListById(playlistWrapper.getPlaylistId(), user);
         if (!refreshedPlaylist.isPresent()) {
             throw new Exception("Playlist not found during refresh.");
@@ -148,10 +146,22 @@ public class PlaylistService {
     }
 }
 
-
-
     public void deleteList(UserPlaylist playlist) {
         userPlayListMoviesRepository.removeByPlaylist(playlist);
         userPlaylistRepository.remove(playlist);
+    }
+    
+    public List<UserMovieRatingDTO> viewMoviesFromPlaylistLazy(UserPlaylist playlist, User user) {
+        return userPlayListMoviesRepository.getMoviesFromPlaylistLazy(playlist, user);
+    }
+        
+    public List<PlaylistDTO> loadPlaylistsMetadata(User user) {
+        List<UserPlaylist> playlists = userPlaylistRepository.getListsByUserId(user);
+        List<PlaylistDTO> result = new ArrayList<>();
+        for (UserPlaylist p : playlists) {
+            PlaylistDTO dto = new PlaylistDTO(p.getId(), p.getListName(), new ArrayList<>());
+            result.add(dto);
+        }
+        return result;
     }
 }

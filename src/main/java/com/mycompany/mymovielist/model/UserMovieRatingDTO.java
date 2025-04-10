@@ -11,14 +11,14 @@ import java.time.Year;
  * @author kiran
  */
 public class UserMovieRatingDTO {
-    private String title;
-    private String genre;
-    private Double rating;
-    private UserMovieRating.Status status;
-    private Long movieId;
-    private Year releaseYear;
-    private String description;
-    private String imageUrl;
+    private final String title;
+    private final String genre;
+    private final Double rating;
+    private final UserMovieRating.Status status;
+    private final Long movieId;
+    private final Year releaseYear;
+    private final String description;
+    private final String imageUrl;
     
 
     public UserMovieRatingDTO(Movie movie, UserMovieRating userMovie) {

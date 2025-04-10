@@ -36,6 +36,7 @@ public class PlaylistBean implements Serializable {
     private List<UserMovieRatingDTO> selectedPlaylistMovies;
     private Movie selectedMovie;
     private List<PlaylistDTO> playlistsWithMovies;
+    private List<PlaylistDTO> playlists;
     private Long movieId;
     private boolean isEditing = false;
     private Long editPlaylistId;
@@ -77,6 +78,9 @@ public class PlaylistBean implements Serializable {
             }
         }
         
+        // Load playlists lazily (only metadata initially)
+        playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
+        
         String mId = FacesContext.getCurrentInstance().getExternalContext()
                             .getRequestParameterMap().get("movieId");
             if (mId != null && !mId.trim().isEmpty()) {
@@ -92,7 +96,7 @@ public class PlaylistBean implements Serializable {
                     System.out.println("Invalid movieId parameter: " + mId);
                 }
             }
-            loadPlaylistsWithMovies();    }
+    }
 
     private void loadPlaylistsWithMovies() {
         try {
@@ -131,7 +135,7 @@ public class PlaylistBean implements Serializable {
             if (success) {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie added successfully!"));
-                loadPlaylistsWithMovies();
+                playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
             } else {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to add movie to playlist."));
@@ -155,7 +159,7 @@ public class PlaylistBean implements Serializable {
             if (success) {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie updated successfully!"));
-                loadPlaylistsWithMovies();
+                playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
             } else {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to update movie in playlist."));
@@ -195,7 +199,7 @@ public class PlaylistBean implements Serializable {
         if (playlistToDelete != null) {
             try {
                 playlistService.deleteList(playlistToDelete);
-                loadPlaylistsWithMovies();
+                playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
                 if (selectedPlaylist != null && selectedPlaylist.getListName().equals(playlistName)) {
                     selectedPlaylist = null;
                     selectedPlaylistMovies = null;
@@ -221,11 +225,9 @@ public class PlaylistBean implements Serializable {
     try {
         boolean success = playlistService.removeMovieFromPlaylist(loggedInUser, removePlaylistWrapper, removeMovieRating);
         if (success) {
-            loadPlaylistsWithMovies();
+            playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie removed from playlist successfully!"));
-            // Reload data model to reflect the change
-            loadPlaylistsWithMovies();
         } else {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to remove movie from playlist."));
@@ -282,10 +284,9 @@ public class PlaylistBean implements Serializable {
             boolean success = playlistService.addOrUpdateMovieInList(loggedInUser, editMovie, ratingToUse, enumStatus, listName);
             this.isEditing = false;
             if (success) {
-                loadPlaylistsWithMovies();
+                playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie updated successfully!"));
-                loadPlaylistsWithMovies();
             } else {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to update movie in playlist."));
@@ -310,8 +311,31 @@ public class PlaylistBean implements Serializable {
         }
     }
     
-     public void onTabChange(TabChangeEvent event) {
-        loadPlaylistsWithMovies();
+    public void onTabChange(TabChangeEvent event) {
+        Object attr = event.getTab().getAttributes().get("playlistId");
+        if (attr != null) {
+            final Long playlistId;
+            try {
+                playlistId = Long.valueOf(attr.toString());
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                return;
+            }
+            // Find the corresponding PlaylistDTO in our lazy-loaded list
+            Optional<PlaylistDTO> dtoOpt = playlists.stream()
+                    .filter(dto -> dto.getPlaylistId().equals(playlistId))
+                    .findFirst();
+            if (dtoOpt.isPresent()) {
+                PlaylistDTO dto = dtoOpt.get();
+                // Only load movies if not already loaded
+                if (dto.getMovies() == null || dto.getMovies().isEmpty()) {
+                    Optional<UserPlaylist> plOpt = playlistService.getPlaylist(playlistId, loggedInUser);
+                    if (plOpt.isPresent()) {
+                        dto.setMovies(playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser));
+                    }
+                }
+            }
+        }
     }
 
 
@@ -334,6 +358,7 @@ public class PlaylistBean implements Serializable {
     public Movie getSelectedMovie() { return selectedMovie; }
     public void setSelectedMovie(Movie selectedMovie) { this.selectedMovie = selectedMovie; }
     public List<PlaylistDTO> getPlaylistsWithMovies() { return playlistsWithMovies; }
+    public List<PlaylistDTO> getPlaylists() {return playlists;}
     
     public Long getMovieId() {
         return movieId;

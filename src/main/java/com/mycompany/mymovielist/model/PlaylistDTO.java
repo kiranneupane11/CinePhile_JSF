@@ -32,4 +32,9 @@ public class PlaylistDTO {
         return movies;
     }
     
+    public void setMovies(List<UserMovieRatingDTO> movies) {
+        this.movies = movies;
+    }
+
+    
 }

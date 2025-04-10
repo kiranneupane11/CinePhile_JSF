@@ -80,40 +80,39 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
         return dtos;
     }
     
-   public List<TrendingMovieDTO> getTrendingMovies() {
-        // Query to get movies, watching count, and average rating
-        List<Object[]> results = entityManager.createQuery(
-                "SELECT m, COUNT(umr.user) as watchingCount, AVG(umr.rating) as avgRating " +
-                "FROM UserMovieRating umr " +
-                "JOIN umr.movie m " +
-                "WHERE umr.status = 'Watching' " +
-                "GROUP BY m " +
-                "ORDER BY watchingCount DESC", Object[].class)
-                .setMaxResults(10)
-                .getResultList();
+  public List<TrendingMovieDTO> getTrendingMovies() {
+    List<Object[]> results = entityManager.createQuery(
+        "SELECT m, COUNT(umr.user) as watchingCount, AVG(umr.rating) as avgRating, " +
+        "       (SELECT MAX(u.username) " +  
+        "        FROM UserMovieRating umr2 " +
+        "        JOIN umr2.user u " +
+        "        WHERE umr2.movie = m AND umr2.status = 'Watching') as sampleUsername " +
+        "FROM UserMovieRating umr " +
+        "JOIN umr.movie m " +
+        "WHERE umr.status = 'Watching' " +
+        "GROUP BY m " +
+        "ORDER BY COUNT(umr.user) DESC", Object[].class)
+        .setMaxResults(10)
+        .getResultList();
 
-        List<TrendingMovieDTO> trendingMovies = new ArrayList<>();
+    List<TrendingMovieDTO> trendingMovies = new ArrayList<>();
 
-        for (Object[] result : results) {
-            Movie movie = (Movie) result[0];
-            Long watchingCount = (Long) result[1];
-            Double avgRating = (Double) result[2]; 
+    for (Object[] result : results) {
+        Movie movie = (Movie) result[0];
+        Long watchingCount = (Long) result[1];
+        Double avgRating = (Double) result[2];
+        String sampleUsername = (String) result[3];
 
-            // Fetch a sample username
-            String sampleUsername = entityManager.createQuery(
-                    "SELECT u.username " +
-                    "FROM UserMovieRating umr " +
-                    "JOIN umr.user u " +
-                    "WHERE umr.movie = :movie AND umr.status = 'Watching'", String.class)
-                    .setParameter("movie", movie)
-                    .setMaxResults(1)
-                    .getSingleResult();
-
-            TrendingMovieDTO dto = new TrendingMovieDTO(sampleUsername, movie, "Watching", watchingCount, avgRating);
-            trendingMovies.add(dto);
-        }
-
-        return trendingMovies;
+        trendingMovies.add(new TrendingMovieDTO(
+            sampleUsername != null ? sampleUsername : "N/A",
+            movie, 
+            "Watching", 
+            watchingCount, 
+            avgRating
+        ));
     }
+
+    return trendingMovies;
+}
 
 }
