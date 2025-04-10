@@ -9,8 +9,7 @@ import javax.inject.Inject;
 import javax.faces.context.FacesContext;
 import javax.faces.application.FacesMessage;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.primefaces.event.TabChangeEvent;
 
 
@@ -35,7 +34,6 @@ public class PlaylistBean implements Serializable {
     private UserPlaylist selectedPlaylist;
     private List<UserMovieRatingDTO> selectedPlaylistMovies;
     private Movie selectedMovie;
-    private List<PlaylistDTO> playlistsWithMovies;
     private List<PlaylistDTO> playlists;
     private Long movieId;
     private boolean isEditing = false;
@@ -46,6 +44,8 @@ public class PlaylistBean implements Serializable {
     private int editRating;
     private PlaylistDTO removePlaylistWrapper;
     private UserMovieRatingDTO removeMovieRating;
+    private Map<Long, Integer> playlistPageMap = new HashMap<>();
+    private final int pageSize = 3;
 
     @PostConstruct
     public void init() {
@@ -96,15 +96,6 @@ public class PlaylistBean implements Serializable {
                     System.out.println("Invalid movieId parameter: " + mId);
                 }
             }
-    }
-
-    private void loadPlaylistsWithMovies() {
-        try {
-            playlistsWithMovies = playlistService.loadPlaylistsWithMovies(loggedInUser);
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to load playlists: " + e.getMessage()));
-        }
     }
 
     public void addToList() {
@@ -331,12 +322,32 @@ public class PlaylistBean implements Serializable {
                 if (dto.getMovies() == null || dto.getMovies().isEmpty()) {
                     Optional<UserPlaylist> plOpt = playlistService.getPlaylist(playlistId, loggedInUser);
                     if (plOpt.isPresent()) {
-                        dto.setMovies(playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser));
+                        List<UserMovieRatingDTO> firstPage = playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser, 1, pageSize);
+                    dto.setMovies(new ArrayList<>(firstPage));
+                    playlistPageMap.put(playlistId, 2);
                     }
                 }
             }
         }
     }
+    
+    public void loadNextPage(Long playlistId) {
+    int currentPage = playlistPageMap.getOrDefault(playlistId, 1);
+    Optional<PlaylistDTO> dtoOpt = playlists.stream()
+            .filter(dto -> dto.getPlaylistId().equals(playlistId))
+            .findFirst();
+    if (dtoOpt.isPresent()) {
+        PlaylistDTO dto = dtoOpt.get();
+        Optional<UserPlaylist> plOpt = playlistService.getPlaylist(playlistId, loggedInUser);
+        if (plOpt.isPresent()) {
+            List<UserMovieRatingDTO> nextPage = playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser, currentPage, pageSize);
+            if (!nextPage.isEmpty()) {
+                dto.getMovies().addAll(nextPage);
+                playlistPageMap.put(playlistId, currentPage + 1);
+            }
+        }
+    }
+}
 
 
     // Getters and Setters
@@ -357,7 +368,6 @@ public class PlaylistBean implements Serializable {
     public int getMovieRatingAsInt(UserMovieRatingDTO movie) { return movie != null && movie.getRating() != null ? movie.getRatingAsInt() : 0; }
     public Movie getSelectedMovie() { return selectedMovie; }
     public void setSelectedMovie(Movie selectedMovie) { this.selectedMovie = selectedMovie; }
-    public List<PlaylistDTO> getPlaylistsWithMovies() { return playlistsWithMovies; }
     public List<PlaylistDTO> getPlaylists() {return playlists;}
     
     public Long getMovieId() {

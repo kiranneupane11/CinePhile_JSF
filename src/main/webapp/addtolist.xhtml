@@ -78,6 +78,12 @@
                     </p:row>
                 </p:panel>
             </ui:repeat>
+                               <p:commandButton value="Load More" icon="pi pi-angle-down"
+                                                action="#{playlistBean.loadNextPage(playlistWrapper.playlistId)}"
+                                                update=":mainForm:playlistTabView"
+                                                process="@this"
+                                                rendered="#{not empty playlistWrapper.movies}"
+                                                styleClass="ui-button-secondary" />
         </p:tab>
     </p:tabView>
 </div>

@@ -108,7 +108,7 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
         }
     }
    
-    public List<UserMovieRatingDTO> getMoviesFromPlaylistLazy(UserPlaylist playlist, User user) {
+    public List<UserMovieRatingDTO> getMoviesFromPlaylistLazy(UserPlaylist playlist, User user, int pageNumber, int pageSize) {
     // First, retrieve movies from the playlist.
     CriteriaBuilder cb = entityManager.getCriteriaBuilder();
     CriteriaQuery<Movie> movieCq = cb.createQuery(Movie.class);
@@ -119,6 +119,8 @@ public class UserPlaylistMoviesRepository extends DatabaseRepository<UserPlaylis
     
     List<Movie> movies = entityManager.createQuery(movieCq)
                                .setHint("javax.persistence.cache.storeMode", "REFRESH")
+                               .setFirstResult((pageNumber - 1) * pageSize)
+                                .setMaxResults(pageSize)
                                .getResultList();
     
     // Now, for each movie, fetch its corresponding UserMovieRating

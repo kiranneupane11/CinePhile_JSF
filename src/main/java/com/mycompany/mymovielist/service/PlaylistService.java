@@ -151,8 +151,8 @@ public class PlaylistService {
         userPlaylistRepository.remove(playlist);
     }
     
-    public List<UserMovieRatingDTO> viewMoviesFromPlaylistLazy(UserPlaylist playlist, User user) {
-        return userPlayListMoviesRepository.getMoviesFromPlaylistLazy(playlist, user);
+    public List<UserMovieRatingDTO> viewMoviesFromPlaylistLazy(UserPlaylist playlist, User user,  int pageNumber, int pageSize) {
+        return userPlayListMoviesRepository.getMoviesFromPlaylistLazy(playlist, user, pageNumber, pageSize);
     }
         
     public List<PlaylistDTO> loadPlaylistsMetadata(User user) {
