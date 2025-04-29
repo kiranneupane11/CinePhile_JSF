@@ -13,6 +13,8 @@ public class PlaylistDTO {
     private Long playlistId;
     private String listName;
     private List<UserMovieRatingDTO> movies;
+    private boolean expanded;
+    private boolean hasMore;
 
     public PlaylistDTO(Long playlistId, String listName, List<UserMovieRatingDTO> movies) {
         this.playlistId = playlistId;
@@ -36,5 +38,20 @@ public class PlaylistDTO {
         this.movies = movies;
     }
 
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
+    }
+    
+    public boolean isHasMore() { 
+        return hasMore; 
+    }
+     
+    public void setHasMore(boolean hasMore) { 
+        this.hasMore = hasMore; 
+    }
     
 }

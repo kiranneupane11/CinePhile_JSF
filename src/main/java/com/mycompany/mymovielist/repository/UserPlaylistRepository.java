@@ -9,22 +9,20 @@ package com.mycompany.mymovielist.repository;
  * @author kiran
  */
 import com.mycompany.mymovielist.model.*;
-import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
 @ApplicationScoped
 public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Long> {
-    @Inject
+    
     public UserPlaylistRepository() {
-        super(UserPlaylist.class, EMFProvider.getEntityManager());
+        super(UserPlaylist.class);
     }
     
     public List<UserPlaylist> getListsByUserId(User user){
-        return entityManager.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user",
+        return em.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user",
             UserPlaylist.class)
             .setParameter("user", user)
             .setHint("javax.persistence.cache.storeMode", "REFRESH")
@@ -32,7 +30,7 @@ public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Lon
     }
     
     public Optional<UserPlaylist> getListById (Long playlistId, User user){
-        return entityManager.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user AND ml.id = :playlistId", UserPlaylist.class)
+        return em.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user = :user AND ml.id = :playlistId", UserPlaylist.class)
                 .setParameter("playlistId", playlistId)
                 .setParameter("user", user)
                 .getResultList()
@@ -41,14 +39,14 @@ public class UserPlaylistRepository extends DatabaseRepository<UserPlaylist, Lon
     }
     
     public List<UserPlaylist> getListsByUserName(String username){
-        return entityManager.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user.username = :username",
+        return em.createQuery("SELECT ml FROM UserPlaylist ml WHERE ml.user.username = :username",
                 UserPlaylist.class)
                 .setParameter("username", username)
                 .getResultList();
     }
     
     public Optional<UserPlaylist> findByUserIdAndListName(User user, String listName) {
-        List<UserPlaylist> results = entityManager.createQuery(
+        List<UserPlaylist> results = em.createQuery(
             "SELECT ml FROM UserPlaylist ml WHERE ml.user = :user AND ml.listName = :listName",
             UserPlaylist.class)
             .setParameter("user", user)

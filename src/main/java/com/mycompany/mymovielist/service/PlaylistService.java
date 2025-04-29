@@ -6,18 +6,17 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.*;
-import com.mycompany.mymovielist.util.EMFProvider;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
-
+import javax.faces.view.ViewScoped;
+import java.io.Serializable;
 
 @Named
-@ApplicationScoped
-public class PlaylistService {
+@ViewScoped
+public class PlaylistService implements Serializable{
     private UserPlaylistRepository userPlaylistRepository;
     private UserPlaylistMoviesRepository userPlayListMoviesRepository;
     private UserMovieRatingRepository userMovieRepository;
     private MovieRepository movieRepository;
+    
     @Inject
     public PlaylistService(UserPlaylistRepository userPlaylistRepository,
                            UserPlaylistMoviesRepository userPlayListMoviesRepository,
@@ -81,20 +80,6 @@ public class PlaylistService {
         }
     }
 
-    
-    public List<PlaylistDTO> loadPlaylistsWithMovies(User user) {
-        List<UserPlaylist> playlists = getUserLists(user);
-        List<PlaylistDTO> result = new ArrayList<>();
-
-        for (UserPlaylist playlist : playlists) {
-            List<UserMovieRatingDTO> movies = userPlayListMoviesRepository.getMoviesFromPlaylist(playlist, user);
-            PlaylistDTO dto = new PlaylistDTO(playlist.getId(), playlist.getListName(), movies);
-            result.add(dto);
-        }
-
-        return result;
-    }
-
 
     public boolean listExists(User user, String listName) {
         return userPlaylistRepository.findByUserIdAndListName(user, listName).isPresent();
@@ -104,53 +89,28 @@ public class PlaylistService {
         return userPlaylistRepository.getListsByUserId(user);
     }
 
-    public List<UserPlaylist> browseLists(String username) {
-        return userPlaylistRepository.getListsByUserName(username);
-    }
-
-    public List<UserMovieRatingDTO> viewMoviesFromPlaylist(UserPlaylist playlist, User user) {
-        return userPlayListMoviesRepository.getMoviesFromPlaylist(playlist, user);
-    }
-
     public Optional<UserPlaylist> getPlaylist(Long listId, User user) {
         return userPlaylistRepository.getListById(listId, user);
     }
     
-    public boolean removeMovieFromPlaylist(User user, PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
-    try {
+   public boolean removeMovieFromPlaylist(User user, PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
         Optional<UserPlaylist> optionalPlaylist = userPlaylistRepository.getListById(playlistWrapper.getPlaylistId(), user);
         if (!optionalPlaylist.isPresent()) {
-            throw new Exception("Playlist not found.");
+            throw new RuntimeException("Playlist not found.");
         }
         UserPlaylist playlist = optionalPlaylist.get();
 
         Optional<Movie> optionalMovie = movieRepository.get(movieRating.getMovieId());
         if (!optionalMovie.isPresent()) {
-            throw new Exception("Movie not found.");
+            throw new RuntimeException("Movie not found.");
         }
         Movie movie = optionalMovie.get();
 
-        // Remove association 
         userPlayListMoviesRepository.removeAssociation(playlist, movie);
-
-        Optional<UserPlaylist> refreshedPlaylist = userPlaylistRepository.getListById(playlistWrapper.getPlaylistId(), user);
-        if (!refreshedPlaylist.isPresent()) {
-            throw new Exception("Playlist not found during refresh.");
-        }
-        System.out.println("Refreshed playlist id after removal: " + refreshedPlaylist.get().getId());
-
+        
         return true;
-    } catch (Exception e) {
-        e.printStackTrace();
-        return false;
     }
-}
 
-    public void deleteList(UserPlaylist playlist) {
-        userPlayListMoviesRepository.removeByPlaylist(playlist);
-        userPlaylistRepository.remove(playlist);
-    }
-    
     public List<UserMovieRatingDTO> viewMoviesFromPlaylistLazy(UserPlaylist playlist, User user,  int pageNumber, int pageSize) {
         return userPlayListMoviesRepository.getMoviesFromPlaylistLazy(playlist, user, pageNumber, pageSize);
     }

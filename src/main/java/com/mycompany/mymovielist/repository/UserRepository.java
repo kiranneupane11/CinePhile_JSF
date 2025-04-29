@@ -5,12 +5,10 @@
 package com.mycompany.mymovielist.repository;
 
 import com.mycompany.mymovielist.model.*;
-import com.mycompany.mymovielist.util.EMFProvider;
 import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.persistence.EntityManager;
 
 /**
  *
@@ -21,11 +19,11 @@ import javax.persistence.EntityManager;
 public class UserRepository extends DatabaseRepository<User, Long> {
     @Inject
     public UserRepository() {
-        super(User.class, EMFProvider.getEntityManager());
+        super(User.class);
     }
     
     public Optional<User> findByUsername(String username) {
-        return entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+        return em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
                 .setParameter("username", username)
                 .getResultList()
                 .stream()
@@ -33,7 +31,7 @@ public class UserRepository extends DatabaseRepository<User, Long> {
     }
     
     public Optional<User> findByEmail(String email) {
-        return entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
+        return em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
                 .setParameter("email", email)
                 .getResultList()
                 .stream()

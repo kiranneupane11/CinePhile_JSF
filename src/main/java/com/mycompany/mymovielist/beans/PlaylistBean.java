@@ -46,10 +46,16 @@ public class PlaylistBean implements Serializable {
     private UserMovieRatingDTO removeMovieRating;
     private Map<Long, Integer> playlistPageMap = new HashMap<>();
     private final int pageSize = 3;
+    private boolean isGridView = true;
+
 
     @PostConstruct
     public void init() {
         
+       reloadData();
+    }
+
+    public void reloadData() {
         this.loggedInUser = authenticationBean.getLoggedInUser();
         if (loggedInUser == null) {
             System.out.println("Logged-in user is null");
@@ -58,18 +64,21 @@ public class PlaylistBean implements Serializable {
             return;
         }
         System.out.println("Logged-in user: " + loggedInUser.getId());
-        
+
         if (status == null) {
-        status = "Plan_To_Watch"; 
+            status = "Plan_To_Watch";
         }
         rating = 0;
+
+        // Load the user's playlists
         userPlaylist = playlistService.getUserLists(loggedInUser);
         if (userPlaylist == null) {
             System.out.println("User playlist is null");
             return;
         }
         System.out.println("User playlists size: " + userPlaylist.size());
-        
+
+        // Create default lists if they don't exist
         String[] defaultLists = {"Watching", "Watched", "Plan to Watch", "Dropped"};
         for (String list : defaultLists) {
             if (!playlistService.listExists(loggedInUser, list)) {
@@ -77,27 +86,27 @@ public class PlaylistBean implements Serializable {
                 System.out.println("Created list: " + list);
             }
         }
-        
+
         // Load playlists lazily (only metadata initially)
         playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
-        
+
+        // Check for a movieId parameter (e.g. from URL)
         String mId = FacesContext.getCurrentInstance().getExternalContext()
                             .getRequestParameterMap().get("movieId");
-            if (mId != null && !mId.trim().isEmpty()) {
-                try {
-                    Long initialMovieId = Long.valueOf(mId);
-                    // Load the movie once if needed, then immediately clear the property.
-                    Optional<Movie> m = movieService.getMovieById(initialMovieId);
-                    if (m.isPresent()) {
-                        selectedMovie = m.get();
-                        System.out.println("Initial movie loaded: " + selectedMovie.getTitle());
-                    }
-                } catch(NumberFormatException e) {
-                    System.out.println("Invalid movieId parameter: " + mId);
+        if (mId != null && !mId.trim().isEmpty()) {
+            try {
+                Long initialMovieId = Long.valueOf(mId);
+                Optional<Movie> m = movieService.getMovieById(initialMovieId);
+                if (m.isPresent()) {
+                    selectedMovie = m.get();
+                    System.out.println("Initial movie loaded: " + selectedMovie.getTitle());
                 }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid movieId parameter: " + mId);
             }
+        }
     }
-
+    
     public void addToList() {
         if (loggedInUser == null) {
             FacesContext.getCurrentInstance().addMessage(null,
@@ -162,61 +171,22 @@ public class PlaylistBean implements Serializable {
     }
 
 
-    public void selectPlaylist(String playlistName) {
-        if (loggedInUser == null) {
-            return;
-        }
-        userPlaylist = playlistService.getUserLists(loggedInUser);
-        selectedPlaylist = userPlaylist.stream()
-            .filter(p -> p.getListName().equals(playlistName))
-            .findFirst()
-            .orElse(null);
-        if (selectedPlaylist != null) {
-            selectedPlaylistMovies = playlistService.viewMoviesFromPlaylist(selectedPlaylist, loggedInUser);
-        } else {
-            selectedPlaylistMovies = null;
-        }
-    }
-
-    public void deleteList(String playlistName) {
-        if (loggedInUser == null) {
-            return;
-        }
-        userPlaylist = playlistService.getUserLists(loggedInUser);
-        UserPlaylist playlistToDelete = userPlaylist.stream()
-            .filter(p -> p.getListName().equals(playlistName))
-            .findFirst()
-            .orElse(null);
-        if (playlistToDelete != null) {
-            try {
-                playlistService.deleteList(playlistToDelete);
-                playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
-                if (selectedPlaylist != null && selectedPlaylist.getListName().equals(playlistName)) {
-                    selectedPlaylist = null;
-                    selectedPlaylistMovies = null;
-                }
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Playlist deleted successfully!"));
-            } catch (Exception e) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to delete playlist: " + e.getMessage()));
-            }
-        }
-    }
-
     public void prepareRemoveDialog(PlaylistDTO playlistWrapper, UserMovieRatingDTO movieRating) {
         this.removePlaylistWrapper = playlistWrapper;
         this.removeMovieRating = movieRating;
         // log details
         System.out.println("Preparing to remove movie: " + movieRating.getTitle() +
                            " from playlist: " + playlistWrapper.getListName());
+        FacesContext.getCurrentInstance().getViewRoot().clearInitialState();
+
     }
     
-    public void confirmRemove() {
+  public void confirmRemove() {
     try {
         boolean success = playlistService.removeMovieFromPlaylist(loggedInUser, removePlaylistWrapper, removeMovieRating);
         if (success) {
-            playlists = playlistService.loadPlaylistsMetadata(loggedInUser);
+            reloadData();
+            FacesContext.getCurrentInstance().getViewRoot().clearInitialState();
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", "Movie removed from playlist successfully!"));
         } else {
@@ -229,8 +199,6 @@ public class PlaylistBean implements Serializable {
         e.printStackTrace();
     }
 }
-
-
 
 
    public void prepareEditMovie(PlaylistDTO playlist, UserMovieRatingDTO movieRating) {
@@ -324,6 +292,7 @@ public class PlaylistBean implements Serializable {
                     if (plOpt.isPresent()) {
                         List<UserMovieRatingDTO> firstPage = playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser, 1, pageSize);
                     dto.setMovies(new ArrayList<>(firstPage));
+                    dto.setHasMore(firstPage.size() == pageSize);
                     playlistPageMap.put(playlistId, 2);
                     }
                 }
@@ -343,8 +312,28 @@ public class PlaylistBean implements Serializable {
             List<UserMovieRatingDTO> nextPage = playlistService.viewMoviesFromPlaylistLazy(plOpt.get(), loggedInUser, currentPage, pageSize);
             if (!nextPage.isEmpty()) {
                 dto.getMovies().addAll(nextPage);
+                dto.setHasMore(nextPage.size() == pageSize);
                 playlistPageMap.put(playlistId, currentPage + 1);
+                dto.setExpanded(true);
             }
+        }
+    }
+}
+    
+    public void loadLess(Long playlistId) {
+    Optional<PlaylistDTO> dtoOpt = playlists.stream()
+            .filter(dto -> dto.getPlaylistId().equals(playlistId))
+            .findFirst();
+    if (dtoOpt.isPresent()) {
+        PlaylistDTO dto = dtoOpt.get();
+        Optional<UserPlaylist> plOpt = playlistService.getPlaylist(playlistId, loggedInUser);
+        if (plOpt.isPresent()) {
+            List<UserMovieRatingDTO> initialPage = playlistService.viewMoviesFromPlaylistLazy(
+                    plOpt.get(), loggedInUser, 1, pageSize);
+            dto.setMovies(initialPage);
+            dto.setHasMore(initialPage.size() == pageSize);
+            playlistPageMap.put(playlistId, 2);
+            dto.setExpanded(false);
         }
     }
 }
@@ -369,7 +358,7 @@ public class PlaylistBean implements Serializable {
     public Movie getSelectedMovie() { return selectedMovie; }
     public void setSelectedMovie(Movie selectedMovie) { this.selectedMovie = selectedMovie; }
     public List<PlaylistDTO> getPlaylists() {return playlists;}
-    
+
     public Long getMovieId() {
         return movieId;
     }
@@ -437,5 +426,12 @@ public class PlaylistBean implements Serializable {
     public void setRemoveMovieRating(UserMovieRatingDTO removeMovieRating) {
         this.removeMovieRating = removeMovieRating;
     }
+    
+   public boolean isGridView() {
+        return isGridView;
+    }
 
+    public void toggleView() {
+        isGridView = !isGridView;
+    }
 }

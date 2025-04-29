@@ -18,7 +18,7 @@ public class UserPlaylistMovies extends BaseEntity {
     @JoinColumn(name = "user_playlist_id", nullable = false)
     private UserPlaylist userPlaylist;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
     

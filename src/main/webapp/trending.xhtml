@@ -33,17 +33,7 @@
                         <!-- Numbering badge at top left -->
                         <h:outputText value="#{loop.index + 1}" style="position:absolute; top:0; left:0; background:#e74c3c; color:#fff; padding:2px 5px; font-weight:bold;" />
                         
-                        <!-- Header -->
-                        <p:panel style="border:0; padding:0;">
-                            <f:facet name="header">
-                                <h3 style="margin:0;">#{trendingMovie.movie.title}</h3>
-                            </f:facet>
-                        </p:panel>
-                        
-                        <!-- Movie Image -->
-                        <h:graphicImage value="#{trendingMovie.movie.imageUrl}" alt="#{trendingMovie.movie.title}" style="width:100%; height:auto;" />
-                        
-                        <!-- Watching Count and Genre -->
+                         <!-- Watching Count -->
                         <h:panelGroup style="margin-top:1em; display:block;">
                             <h:outputText value="#{trendingMovie.username} and #{trendingMovie.watchingCount - 1} others are watching"
                                           rendered="#{trendingMovie.watchingCount > 1}"
@@ -54,16 +44,18 @@
                             <h:outputText value="No one is currently watching"
                                           rendered="#{trendingMovie.watchingCount eq 0}"
                                           style="font-style:italic; color:#7f8c8d;" />
-<!--                            <h:outputText value="#{trendingMovie.movie.genre}" styleClass="genre-item" />-->
                         </h:panelGroup>
                         
-                        <!-- Rating and Add to List Button -->
-                        <h:panelGroup layout="block" styleClass="movie-card-content">
-                            <p:rating value="#{trendingMovie.avgRatingInt}" stars="10" cancel="false" readonly="true" style="margin-top:0.5em;" />
-                            <h:outputText value="(#{trendingMovie != null and trendingMovie.avgRating != null ? trendingMovie.avgRating : 'N/A'})" style="margin-left:0.5em;" />
-                            <p:commandButton value="Add to list" action="#{movieViewBean.navigateToAddToList}"
-                                             style="margin-top:1em;" />
-                        </h:panelGroup>
+                        <!-- Header -->
+                        <p:panel style="border:0; padding:0;">
+                            <f:facet name="header">
+                                <h3 style="margin:0;">#{trendingMovie.movie.title}</h3>
+                            </f:facet>
+                        </p:panel>
+                        
+                        <!-- Movie Image -->
+                        <h:graphicImage value="#{trendingMovie.movie.imageUrl}" alt="#{trendingMovie.movie.title}" style="width:100%; height:auto;" />
+                       
                     </h:panelGroup>
                 </ui:repeat>
             </h:panelGroup>

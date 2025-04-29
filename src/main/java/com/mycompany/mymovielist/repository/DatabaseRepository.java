@@ -3,68 +3,60 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.mymovielist.repository;
-import com.mycompany.mymovielist.util.EMFProvider;
 
 /**
  *
  * @author kiran
  */
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID> {
-    protected EntityManager entityManager;
+    
+    @PersistenceContext(unitName="MovieListPU")
+    protected EntityManager em; 
+    
     private final Class<T> entityType;
 
-    protected DatabaseRepository(Class<T> entityType, EntityManager entityManager) {
+    public DatabaseRepository(Class<T> entityType) {
         this.entityType = entityType;
-        this.entityManager = EMFProvider.getEntityManager();
     }
 
     @Override
+    @Transactional
     public void add(T item) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(item);
-        entityManager.getTransaction().commit();
+        em.persist(item);
     }
 
     @Override
+    @Transactional
     public void update(T item) {
-        entityManager.getTransaction().begin();
-        entityManager.merge(item);
-        entityManager.getTransaction().commit();
+        em.merge(item);
     }
 
     @Override
+    @Transactional
     public void remove(T item) {
-        entityManager.getTransaction().begin();
-        get(getId(item)).ifPresent(entity -> entityManager.remove(entity));
-        entityManager.getTransaction().commit();
+        em.remove(em.contains(item) ? item : em.merge(item));
     }
 
     @Override
     public Optional<T> get(ID id) {
-        T entity = entityManager.find(entityType, id);
-            if (entity != null) {
-                entityManager.refresh(entity);  
-            }
-            return Optional.ofNullable(entity);    
+        T entity = em.find(entityType, id);
+        return Optional.ofNullable(entity);
     }
+
     @Override
     public List<T> getAll() {
-        List<T> items = entityManager.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
-                .getResultList();
-        for (T item : items) {
-            entityManager.refresh(item);
-        }
-        System.out.println("Items fetched: " + items.size());
-        return items;
+        return em.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
+                 .getResultList();
     }
-    
+
     @Override
     protected ID getId(T item) {
-        throw new UnsupportedOperationException("getId() must be implemented in subclasses.");
+        throw new UnsupportedOperationException("Subclasses must implement getId().");
     }
 }
-
