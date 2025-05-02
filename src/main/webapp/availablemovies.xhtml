@@ -40,7 +40,8 @@
       
       
     <!-- Movie Grid -->
-    <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" columns="5" layout="grid" styleClass="movie-grid">
+    <p:dataGrid id="movieGrid" value="#{movieViewBean.filteredMovies}" var="movie" rows="7" columns="7" layout="grid" styleClass="movie-grid" 
+                paginator="true" paginatorPosition="bottom">
       <p:panel styleClass="movie-card">
         <p:commandLink action="#{movieViewBean.selectMovie(movie)}"
                        update=":mainForm:dialogContent"

@@ -1,54 +1,46 @@
 .movie-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  background: transparent;    /* <-- ensure no white panel behind cards */
 }
 
+/* Movie card: use transparent/dark background, remove white border */
 .movie-card {
-    width: 200px;
-    height: 300px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 200px;
+  height: 300px;
+  border-radius: 8px;
+  background-color: transparent;  /* <-- blend into dark page */
+  box-shadow: none;               /* or use a subtle dark shadow:
+                                       0 2px 5px rgba(0,0,0,0.5) */
+  overflow: hidden;
+  position: relative;
 }
 
-/* Ensure poster fills the card */
+/* Poster itself covers the card */
 .movie-poster {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures the image fully covers the container */
-    object-position: center;
-    border-radius: 8px; /* Consistent border-radius */
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
-
-/* Hover effect overlay */
 .movie-card-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.6);   /* small title banner */
+  color: #fff;
+  padding: 0.25rem;
+  text-align: center;
+  z-index: 2;
 }
 
 /* Show details on hover */
@@ -120,4 +112,11 @@
 }
 .ui-input-icon-left input {
     padding-left: 28px; /* Space for icon */
+}
+
+.movie-grid .ui-paginator {
+  flex: 0 0 100%;           /* take the entire row */
+  margin-top: 1rem;         /* some breathing room */
+  display: flex;            /* center the controls */
+  justify-content: center;
 }

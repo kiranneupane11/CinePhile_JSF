@@ -56,6 +56,9 @@ public class Movie extends BaseEntity{
         this.rating = rating;
     }
     
+    public void setTitle(String title) {
+        this.title = title;
+    }
     
     public String getTitle() {
         return title;

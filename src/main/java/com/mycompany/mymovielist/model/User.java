@@ -26,6 +26,10 @@ public class User extends BaseEntity {
     
     @Column(nullable = false)
     protected String password;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    protected Role role = Role.USER;
 
     public User() {} 
     
@@ -33,6 +37,7 @@ public class User extends BaseEntity {
         this.username = username;
         this.email = email;
         this.password = PasswordUtil.hashPassword(rawPassword);
+        this.role = Role.USER;
     }
 
     public String getUsername() {
@@ -61,6 +66,14 @@ public class User extends BaseEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+      public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
     
     @Override

@@ -25,10 +25,7 @@
         <h:panelGroup layout="block" style="text-align:center;">
             <ui:repeat value="#{topRatedBean.filteredTopRatedMovies}" var="movieDto" varStatus="loop">
                 <h:panelGroup layout="block" style="display:inline-block; vertical-align:top; width:20em; margin:0.5em; border:1px solid #ccc; padding:0.5em; position:relative;">
-                    <p:commandLink action="#{topRatedBean.selectMovie(movieDto.movie)}"
-                       update=":mainForm:ratedDialogContent"
-                       oncomplete="setOverlayBackground('#{movieDto.movie.imageUrl}'); PF('topRatedMovieDialog').show();"
-                       onerror="alert('AJAX error')">
+                 
                     <!-- Numbering badge at top left -->
                     <h:outputText value="#{loop.index + 1}" style="position:absolute; top:0; left:0; background:#e74c3c; color:#fff; padding:2px 5px; font-weight:bold;" />
                     
@@ -41,68 +38,15 @@
                     
                     <!-- Movie Image -->
                     <h:graphicImage value="#{movieDto.movie.imageUrl}" alt="#{movieDto.movie.title}" style="width:100%; height:auto;" />
-                    </p:commandLink>
-                    <!-- Average Rating and Description -->
+                    <!-- Average Rating-->
                     <h:panelGroup style="margin-top:1em; display:block;">
                         <p:rating value="#{movieDto.avgRatingInt}" stars="10" cancel="false" readonly="true" />
                         <h:outputText value="(#{movieDto.avgRating})" />
                     </h:panelGroup>
                     
-                    <h:panelGroup layout="block" styleClass="movie-card-content">
-                        <h:outputText value="#{movieDto.movie.description}" style="padding:1em; text-align:center;" />
-                        <p:commandButton value="Add to list" action="#{topRatedBean.navigateToAddToList}" />
-                    </h:panelGroup>
                 </h:panelGroup>
             </ui:repeat>
         </h:panelGroup>
-        
-        <!-- Movie Details Dialog -->
-    <p:dialog id="topRatedMovieDialog" 
-              widgetVar="topRatedMovieDialog" 
-              header="Movie Details" 
-              modal="true" 
-              resizable="false" 
-              appendTo="@(body)"
-              onHide="$('.ui-widget-overlay').css('background','');">
-      <p:outputPanel id="ratedDialogContent">
-        <div class="surface-section">
-          <div class="font-medium text-3xl text-900 mb-3">Movie Details</div>
-          <h:panelGroup styleClass="details-container">
-            <ui:repeat value="#{topRatedBean.movieDetails}" var="detail">
-              <div class="detail-item #{detail.key == 'Description' ? 'border-top-1 border-bottom-1' : 'border-top-1'} surface-border">
-                <span class="label text-500 font-medium">#{detail.key}</span>
-                <span class="value text-900">
-                  <h:outputText value="#{detail.value}"
-                                rendered="#{detail.key != 'Rating' and detail.key != 'Description' and detail.key != 'Genre'}" />
-                  <h:outputText value="#{detail.value}" rendered="#{detail.key == 'Description'}" styleClass="line-height-3" />
-                  <h:panelGroup rendered="#{detail.key == 'Rating'}" layout="block" styleClass="rating-container">
-                    <p:rating value="#{topRatedBean.selectedMovieRatingAsInt}" stars="10" cancel="false" readonly="true" />
-                    <h:outputText value=" (#{detail.value})" styleClass="rating-value" />
-                  </h:panelGroup>
-                  <h:panelGroup rendered="#{detail.key == 'Genre'}" layout="block" styleClass="genre-container">
-                    <h:dataTable value="#{topRatedBean.selectedMovie.genre.split(',')}" var="genre" styleClass="genre-table">
-                      <h:column>
-                        <h:outputText value="#{genre.trim()}" styleClass="genre-item"/>
-                      </h:column>
-                    </h:dataTable>
-                  </h:panelGroup>
-                </span>
-              </div>
-            </ui:repeat>
-          </h:panelGroup>
-          <div class="text-center mt-4">
-            <p:commandButton value="Add to List" 
-                             action="#{topRatedBean.navigateToAddToList}"
-                             rendered="#{authenticationBean.loggedIn}"
-                             styleClass="add-to-list-button" />
-            <p:button value="Login to Add" 
-                      outcome="/login.xhtml"
-                      rendered="#{not authenticationBean.loggedIn}"
-                      styleClass="add-to-list-button" />
-          </div>
-        </div>
-      </p:outputPanel>
-    </p:dialog>
-        
+       
     </ui:define>
 </ui:composition>

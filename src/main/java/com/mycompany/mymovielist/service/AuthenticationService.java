@@ -8,7 +8,7 @@ import com.mycompany.mymovielist.model.User;
 import com.mycompany.mymovielist.repository.UserRepository;
 import com.mycompany.mymovielist.util.PasswordService;
 import javax.inject.Inject;
-import java.util.Optional;
+import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 
@@ -49,5 +49,6 @@ public class AuthenticationService {
         userRepository.add(user);
         return Optional.of(user);
     }
+    
 }
 

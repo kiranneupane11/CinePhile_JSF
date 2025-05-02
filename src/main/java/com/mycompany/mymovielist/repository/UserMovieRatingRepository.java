@@ -8,7 +8,7 @@ import java.util.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
 import javax.persistence.TypedQuery;
-
+import javax.persistence.NoResultException;
 /**
  *
  * @author kiran
@@ -35,7 +35,11 @@ public class UserMovieRatingRepository extends DatabaseRepository<UserMovieRatin
             UserMovieRating.class);
         query.setParameter("user", user);
         query.setParameter("movie", movie);
-        return Optional.ofNullable(query.getSingleResult());
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
         
     public List<TopRatedMovieDTO> findTopRatedMovies() {

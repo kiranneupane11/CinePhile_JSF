@@ -24,6 +24,18 @@ public class MovieService {
     
     @Inject
     private UserMovieRatingRepository userMovieRatingRepository;
+    
+    public void addMovie(Movie m){
+        movieRepository.add(m);
+    }
+    
+    public void updateMovie(Movie m){
+        movieRepository.get(m.getId())
+            .orElseThrow(() ->
+                new IllegalArgumentException("Movie not found: " + m)
+            );
+        movieRepository.update(m);
+    }
 
     public List<Movie> getAvailableMovies() {
         return movieRepository.getAll();
@@ -31,6 +43,14 @@ public class MovieService {
 
     public Optional<Movie> getMovieById(long id) {
         return movieRepository.get(id);
+    }
+    
+    public void deleteMovie(long id){
+        Movie movie = movieRepository.get(id)
+        .orElseThrow(() ->
+            new IllegalArgumentException("Movie not found: " + id)
+        );
+        movieRepository.remove(movie);
     }
     
     public List<Movie> getMoviesOrderByYearDesc() {

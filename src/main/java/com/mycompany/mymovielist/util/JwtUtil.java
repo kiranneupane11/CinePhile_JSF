@@ -10,17 +10,18 @@ package com.mycompany.mymovielist.util;
  */
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import com.mycompany.mymovielist.model.Role;
 
 public class JwtUtil {
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     private static final long EXPIRATION_TIME = 3600000; // 1 hour
 
-    public static String generateToken(String username) {
+    public static String generateToken(String username, Role role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role.toString())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SECRET_KEY)
                 .compact();

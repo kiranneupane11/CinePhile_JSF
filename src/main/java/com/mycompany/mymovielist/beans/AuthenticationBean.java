@@ -12,6 +12,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.faces.context.FacesContext;
 import java.io.Serializable;
+import com.mycompany.mymovielist.model.Role;
+import javax.faces.application.FacesMessage;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 
 /**
@@ -25,6 +29,7 @@ public class AuthenticationBean implements Serializable {
     @Inject
     private AuthenticationService authService;
     
+    private static final Logger logger = Logger.getLogger(AuthenticationBean.class.getName());
     private String username;
     private String email;
     private String usernameOrEmail;
@@ -84,23 +89,62 @@ public class AuthenticationBean implements Serializable {
         return loggedInUser != null;
     }
     
-    public String login(){
+    public boolean isAdmin() {
+        return loggedInUser != null && 
+               loggedInUser.getRole() == Role.ADMIN;
+    }
+    
+    public void checkAdminAccess() {
+        FacesContext context = FacesContext.getCurrentInstance();
+        if (!isAdmin()) {
+            context.addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                                 "Access Denied",
+                                 "Administrator privileges required."));
+            context.getExternalContext()
+                   .getFlash().setKeepMessages(true);
+            try {
+                context.getExternalContext()
+                       .redirect("login.xhtml?faces-redirect=true");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void login(){
         Optional<User> userOpt = authService.login(usernameOrEmail, password);
             if(userOpt.isPresent()){
                 loggedInUser = userOpt.get();
-                String token = JwtUtil.generateToken(loggedInUser.getUsername());
+                String token = JwtUtil.generateToken(loggedInUser.getUsername(), loggedInUser.getRole());
                 Map<String, Object> cookieProps = new HashMap<>();
                 cookieProps.put("path", "/");
                 cookieProps.put("httpOnly", true);
                 FacesContext.getCurrentInstance().getExternalContext()
                     .addResponseCookie("jwtToken", token, cookieProps);
-                message = "Login Successful!";
-            } else{
-                message = "Invalid username or password.";
-            }
-        FacesContext.getCurrentInstance().getExternalContext().getFlash().put("message", message);
-
-    return userOpt.isPresent() ? "loginSuccess" : "loginFailure";
+                try {
+            // Role-based redirection
+            String redirectPage = loggedInUser.getRole() == Role.ADMIN 
+                ? "dbmovies.xhtml" 
+                : "availablemovies.xhtml";
+            
+            FacesContext.getCurrentInstance().getExternalContext()
+                .redirect(redirectPage);
+        } catch (IOException e) {
+            logger.severe("Redirect failed: " + e.getMessage());
+        }
+    } else {
+        message = "Invalid username or password.";
+        FacesContext.getCurrentInstance().getExternalContext()
+            .getFlash().put("message", message);
+        
+        try {
+            FacesContext.getCurrentInstance().getExternalContext()
+                .redirect("login.xhtml");
+        } catch (IOException e) {
+            logger.severe("Redirect failed: " + e.getMessage());
+        }
+    }
     }
     
     public String logout() {
@@ -130,6 +174,7 @@ public class AuthenticationBean implements Serializable {
         Optional<User> userOpt = authService.signup(newUser);
             if(!userOpt.isPresent()){
                 message = "User already exists";
+                FacesContext.getCurrentInstance().getExternalContext().getFlash().put("message", message);
                 return "signup?faces-redirect=true";
             } else{
                 message = "Sign Up Successful!!!";

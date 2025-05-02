@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:composition template="/admintemplate.xhtml">
+        <f:metadata>
+            <f:event type="preRenderView" listener="#{authenticationBean.checkAdminAccess}"/>
+        </f:metadata>
+        <ui:define name="title">All Movies</ui:define>
+        
+        <ui:define name="head">
+            <h:outputStylesheet library="primefaces" name="theme.css"/>
+        </ui:define>
+        
+        <ui:define name="content">
+            <div class="card crud-demo">
+                <p:growl id="messages" showDetail="true" />
+    <h:form id="form">
+        <p:growl id="messages" showDetail="true" />
+        <p:toolbar>
+            <p:toolbarGroup align="left">
+                <p:commandButton value="Add Movie" icon="pi pi-plus" actionListener="#{movieViewBean.openNew}"
+                    update=":form:messages :form:movies :dialogs:manageMovieDialog" oncomplete="PF('manageMovieDialog').show()"
+                    styleClass="ui-button-success" style="margin-right: .5rem">
+                    <p:resetInput target=":dialogs:manage-product-content" />
+                </p:commandButton>
+            </p:toolbarGroup>
+            <p:toolbarGroup align="right">
+                <p:inputText id="searchTerm" value="#{movieViewBean.searchTerm}" placeholder="Search movies ..." >
+                    <p:ajax event="keyup" listener="#{movieViewBean.searchMovies()}" update="@form" />
+                </p:inputText>
+            </p:toolbarGroup>
+        </p:toolbar>
+        
+        <p:dataTable id="movies" var="movie" value="#{movieViewBean.availableMovies}" 
+                     styleClass="products-table" selection="#{movieViewBean.selectedMovies}"
+                     paginator="true" rows="5" paginatorPosition="bottom">
+            <f:facet name="header">
+                <div class="products-table-header">
+                    <span style="font-weight: bold">MOVIES</span>
+                </div>
+            </f:facet>
+            
+            <p:column headerText="ID" sortBy="#{movie.id}" filterBy="#{movie.id}">
+                <h:outputText value="#{movie.id}" />
+            </p:column>
+            
+            <p:column headerText="Title" sortBy="#{movie.title}" filterBy="#{movie.title}">
+                <h:outputText value="#{movie.title}" />
+            </p:column>
+            
+            <p:column headerText="Genre" sortBy="#{movie.genre}" filterBy="#{movie.genre}">
+                <h:outputText value="#{movie.genre}" />
+            </p:column>
+            
+            <p:column headerText="Release Year" sortBy="#{movie.releaseYear}" filterBy="#{movie.releaseYear}">
+                <h:outputText value="#{movie.releaseYear}" />
+            </p:column>
+            
+            <p:column headerText="Rating" sortBy="#{movie.rating}" filterBy="#{movie.rating}">
+                <h:outputText value="#{movie.rating}" />
+            </p:column>
+            
+            <p:column exportable="false" headerText="Actions">
+                <h:panelGroup layout="block"
+                              style="display: flex; justify-content: center; gap: 1rem;">
+                <p:commandButton icon="pi pi-pencil" update=":form:messages :dialogs:manage-product-content"
+                                 oncomplete="PF('manageMovieDialog').show()" styleClass="edit-button rounded-button ui-button-success"
+                                 actionListener="#{movieViewBean.onEditMovie(movie)}" process="@this" />
+                <p:commandButton class="ui-button-warning rounded-button" icon="pi pi-trash" update=":form:messages :form:movies"
+                                 oncomplete="PF('deleteProductDialog').show()"
+                                 actionListener="#{movieViewBean.prepareDelete(movie)}" process="@this" />
+                </h:panelGroup>
+            </p:column>
+        </p:dataTable>
+    </h:form>
+                <h:form id="dialogs">
+        <p:dialog id="manageMovieDialog" header="Movie Details" showEffect="fade" modal="true" widgetVar="manageMovieDialog" responsive="true">
+            <p:outputPanel id="manage-product-content" class="ui-fluid" rendered="#{not empty movieViewBean.selectedMovie}">
+                    <p:graphicImage name="#{movieViewBean.selectedMovie.title}"
+                                    styleClass="product-image" rendered="#{not empty movieViewBean.selectedMovie.imageUrl}" />
+                    <div class="field">
+                        <p:outputLabel for="name">Movie Title</p:outputLabel>
+                        <p:inputText id="name" value="#{movieViewBean.selectedMovie.title}" required="true" />
+                    </div>
+                    <div class="field">
+                        <p:outputLabel for="releaseYear" value="Release Year" />
+                        <p:selectOneMenu id="releaseYear"
+                                         converter="yearConverter"
+                                         value="#{movieViewBean.selectedMovie.releaseYear}"
+                                         required="true"
+                                         requiredMessage="Please select a year">
+                        <f:selectItem itemLabel="-- Select Year --" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{movieViewBean.releaseYears}" var="yr" itemValue="#{yr}" itemLabel="#{yr}" />
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="field">
+                        <p:outputLabel for="genre">Genre</p:outputLabel>
+                        <p:inputText id="genre" value="#{movieViewBean.selectedMovie.genre}" required="true" />
+                    </div>
+                    <div class="field">
+                        <p:outputLabel for="poster">Movie Poster Link</p:outputLabel>
+                        <p:inputText id="poster" value="#{movieViewBean.selectedMovie.imageUrl}" required="true" />
+                    </div>
+                    <div class="field">
+                        <p:outputLabel for="description">Description</p:outputLabel>
+                        <p:inputTextarea id="description" value="#{movieViewBean.selectedMovie.description}" required="true" />
+                    </div>
+            </p:outputPanel>
+
+            <f:facet name="footer">
+                <p:commandButton value="Save" icon="pi pi-check" actionListener="#{movieViewBean.saveMovie}"
+                    update=":form:messages :form:movies :dialogs:manageMovieDialog" process="@form" />
+                <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('manageMovieDialog').hide()"
+                    class="ui-button-secondary" type="button" />
+            </f:facet>
+        </p:dialog>
+
+        <p:confirmDialog widgetVar="deleteProductDialog" showEffect="fade" width="300"
+            message="Delete Movie Permanently?" header="Confirm" severity="warn">
+            <p:commandButton value="Yes" icon="pi pi-check" actionListener="#{movieViewBean.confirmDelete()}"
+                process="@this" update=":form:messages :form:movies :dialogs:manageMovieDialog" oncomplete="PF('deleteProductDialog').hide()" />
+            <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                onclick="PF('deleteProductDialog').hide()" />
+        </p:confirmDialog>
+
+        <p:confirmDialog global="true" showEffect="fade" width="300">
+            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"
+                icon="pi pi-times" />
+        </p:confirmDialog>
+    </h:form>
+    </div>
+        </ui:define>
+    </ui:composition>
+</html>
