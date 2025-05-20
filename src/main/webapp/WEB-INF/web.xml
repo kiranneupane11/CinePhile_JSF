@@ -5,50 +5,49 @@
              http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          version="3.0">
 
-    <display-name>MyMovieList</display-name>
-    
-    <!-- Faces Servlet Declaration -->
-    <servlet>
-        <servlet-name>FacesServlet</servlet-name>
-        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    
-    <!-- JWT Filter Declaration -->
-    <filter>
-        <filter-name>JwtFilter</filter-name>
-        <filter-class>com.mycompany.mymovielist.util.JwtFilter</filter-class>
-    </filter>
-    
-    <!-- JWT Filter Mapping: Adjust the URL pattern as required -->
-    <filter-mapping>
-        <filter-name>JwtFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-    
-    <context-param>
-        <param-name>primefaces.DEVELOPMENT</param-name>
-        <param-value>true</param-value>
-    </context-param>
+  <display-name>MyMovieList</display-name>
 
-    <!-- Map FacesServlet to process .xhtml files -->
-    <servlet-mapping>
-        <servlet-name>FacesServlet</servlet-name>
-        <url-pattern>*.xhtml</url-pattern>
-    </servlet-mapping>
+  <!-- 1) JSF FacesServlet for .xhtml pages -->
+  <servlet>
+    <servlet-name>FacesServlet</servlet-name>
+    <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FacesServlet</servlet-name>
+    <url-pattern>*.xhtml</url-pattern>
+  </servlet-mapping>
 
-    <welcome-file-list>
-        <welcome-file>availablemovies.xhtml</welcome-file>
-    </welcome-file-list>
-    
-    <error-page>
-        <exception-type>javax.faces.application.ViewExpiredException</exception-type>
-        <location>/login.xhtml</location>
-    </error-page>
-    
-    <context-param>
-        <param-name>primefaces.THEME</param-name>
-        <param-value>luna-blue</param-value>
-    </context-param>
+
+  <!-- 3) JWT Filter applied globally -->
+  <filter>
+    <filter-name>JwtFilter</filter-name>
+    <filter-class>com.mycompany.mymovielist.util.JwtFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>JwtFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- 4) PrimeFaces / JSF config -->
+  <context-param>
+    <param-name>primefaces.DEVELOPMENT</param-name>
+    <param-value>true</param-value>
+  </context-param>
+  <context-param>
+    <param-name>primefaces.THEME</param-name>
+    <param-value>luna-blue</param-value>
+  </context-param>
+
+  <!-- 5) Welcome page -->
+  <welcome-file-list>
+    <welcome-file>availablemovies.xhtml</welcome-file>
+  </welcome-file-list>
+
+  <!-- 6) On ViewExpiredException, go back to login -->
+  <error-page>
+    <exception-type>javax.faces.application.ViewExpiredException</exception-type>
+    <location>/login.xhtml</location>
+  </error-page>
 
 </web-app>

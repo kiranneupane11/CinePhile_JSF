@@ -43,9 +43,11 @@ public class AuthenticationService {
     }
 
     public Optional<User> signup(User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent() || userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return Optional.empty();
-        }
+       boolean usernameExists = userRepository.findByUsername(user.getUsername()).isPresent();
+       boolean emailExists    = userRepository.findByEmail(user.getEmail()).isPresent();
+        if (usernameExists || emailExists) {
+         return Optional.empty();
+     }
         userRepository.add(user);
         return Optional.of(user);
     }

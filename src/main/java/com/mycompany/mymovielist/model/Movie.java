@@ -3,9 +3,11 @@ package com.mycompany.mymovielist.model;
 import java.time.Year; 
 import javax.persistence.*;
 import com.mycompany.mymovielist.converter.YearAttributeConverter;
-
-
-
+import com.mycompany.mymovielist.api.YearDeserializer;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 /**
  *
  * @author kiran
@@ -22,6 +24,7 @@ public class Movie extends BaseEntity{
 
     @Column(name = "release_year", nullable = false)
     @Convert(converter = YearAttributeConverter.class)
+    @JsonDeserialize(using = YearDeserializer.class)
     private Year releaseYear;
 
     @Column(name = "genre", nullable = false, length = 75)
@@ -38,8 +41,15 @@ public class Movie extends BaseEntity{
 
     public Movie() {
     }
-
-    public Movie(String title, Year releaseYear, String genre, double rating, String description,  String imageUrl) {
+    
+    @JsonCreator
+    public Movie(@JsonProperty("title") String title,
+        @JsonProperty("releaseYear") Year releaseYear,
+        @JsonProperty("genre") String genre,
+        @JsonProperty("rating") double rating,
+        @JsonProperty("description") String description,
+        @JsonProperty("imageUrl") String imageUrl
+    ) {
         setMovieTitle(title);
         setReleaseYear(releaseYear);
         setRating(rating);

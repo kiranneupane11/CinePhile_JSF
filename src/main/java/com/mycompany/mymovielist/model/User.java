@@ -7,7 +7,8 @@ package com.mycompany.mymovielist.model;
 import java.util.*;
 import javax.persistence.*;
 import com.mycompany.mymovielist.util.*;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
@@ -33,7 +34,11 @@ public class User extends BaseEntity {
 
     public User() {} 
     
-    public User(String username, String email, String rawPassword) {
+    @JsonCreator
+    public User(
+            @JsonProperty("username") String username,
+            @JsonProperty("email") String email,
+            @JsonProperty("password") String rawPassword) {
         this.username = username;
         this.email = email;
         this.password = PasswordUtil.hashPassword(rawPassword);

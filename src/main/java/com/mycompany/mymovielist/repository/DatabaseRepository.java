@@ -54,6 +54,18 @@ public abstract class DatabaseRepository<T, ID> extends AbstractRepository<T, ID
         return em.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
                  .getResultList();
     }
+    
+    public List<T> findAllPaged(int offset, int pageSize) {
+        return em.createQuery("SELECT e FROM " + entityType.getSimpleName() + " e", entityType)
+                 .setFirstResult(offset)
+                 .setMaxResults(pageSize)
+                 .getResultList();
+    }
+
+    public long countAll() {
+        return em.createQuery("SELECT COUNT(e) FROM " + entityType.getSimpleName() + " e", Long.class)
+                 .getSingleResult();
+    }
 
     @Override
     protected ID getId(T item) {

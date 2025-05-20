@@ -31,4 +31,20 @@ public class UserService {
      public void updateUser(User u) {
         userRepository.update(u);
     }
+     
+    public List<User> getUsersPaged(int offset, int pageSize) {
+        return userRepository.findAllPaged(offset, pageSize);
+    }
+
+    public long countUsers() {
+        return userRepository.countAll();
+    }
+    
+    public List<User> getUsersPage(int offset, int size, String sortField, boolean asc, Map<String,String> filters) {
+        return userRepository.findPagedSortedFiltered(offset, size, sortField, asc, filters);
+    }
+
+    public long countUsers(Map<String,String> filters) {
+        return userRepository.countFiltered(filters);
+    }
 }

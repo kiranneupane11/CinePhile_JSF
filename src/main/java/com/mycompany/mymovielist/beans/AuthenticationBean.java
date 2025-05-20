@@ -116,7 +116,7 @@ public class AuthenticationBean implements Serializable {
         Optional<User> userOpt = authService.login(usernameOrEmail, password);
             if(userOpt.isPresent()){
                 loggedInUser = userOpt.get();
-                String token = JwtUtil.generateToken(loggedInUser.getUsername(), loggedInUser.getRole());
+                String token = JwtUtil.generateToken(loggedInUser.getUsername(), loggedInUser.getRole(), 15);
                 Map<String, Object> cookieProps = new HashMap<>();
                 cookieProps.put("path", "/");
                 cookieProps.put("httpOnly", true);

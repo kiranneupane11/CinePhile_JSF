@@ -16,13 +16,13 @@ import com.mycompany.mymovielist.model.Role;
 
 public class JwtUtil {
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private static final long EXPIRATION_TIME = 3600000; // 1 hour
 
-    public static String generateToken(String username, Role role) {
+    public static String generateToken(String username, Role role, long expirationSeconds) {
+        long expirationMillis = expirationSeconds * 1000;
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role.toString())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(SECRET_KEY)
                 .compact();
     }
@@ -49,5 +49,25 @@ public class JwtUtil {
         } catch (JwtException e) {
             return false;
         }
+    }
+    
+    public static String getSubject(String token) {
+        return Jwts.parserBuilder()
+                   .setSigningKey(SECRET_KEY)
+                   .build()
+                   .parseClaimsJws(token)
+                   .getBody()
+                   .getSubject();
+    }
+    
+    public static Role getRole(String token) {
+        String roleStr = Jwts.parserBuilder()
+                             .setSigningKey(SECRET_KEY)
+                             .build()
+                             .parseClaimsJws(token)
+                             .getBody()
+                             .get("role", String.class);
+
+        return Role.valueOf(roleStr);
     }
 }
