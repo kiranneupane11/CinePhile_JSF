@@ -14,6 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import com.mycompany.mymovielist.model.Role;
 
 @WebFilter("/*")
 public class JwtFilter implements Filter {
@@ -62,6 +63,14 @@ public class JwtFilter implements Filter {
         // 3) Otherwise (normal JSF pages), do your redirect-based login:
         String token = getTokenFromRequest(httpReq);
         if (token != null && JwtUtil.verifyToken(token)) {
+            Role role = JwtUtil.getRole(token);
+
+            // ✅ Redirect admin to dbmovies.xhtml
+            if (role == Role.ADMIN && isPublicPage(uri, contextPath)) {
+                httpResp.sendRedirect(contextPath + "/dbmovies.xhtml");
+                return;
+            }
+
             chain.doFilter(request, response);
         } else {
             httpResp.sendRedirect(contextPath + "/login.xhtml");

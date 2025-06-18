@@ -1,0 +1,33 @@
+# 1) Start an embedded, in-JVM WildFly server
+embed-server --std-out=echo
+
+# 2) Install the MySQL driver as a module named “com.mysql”
+module add \
+    --name=com.mysql \
+    --resources=/tmp/mysql-connector-java-5.1.49.jar \
+    --dependencies=javax.api
+
+# 3) Register the JDBC driver under the "datasources" subsystem
+/subsystem=datasources/jdbc-driver=mysql:add( \
+    driver-name=mysql, \
+    driver-module-name=com.mysql, \
+    driver-class-name=com.mysql.jdbc.Driver \
+)
+
+# 4) Create a DataSource called “MyMovieListDS”
+/subsystem=datasources/data-source=MyMovieListDS:add( \
+    jndi-name="java:/jboss/datasources/MyMovieListDS", \
+    driver-name=mysql, \
+    connection-url="jdbc:mysql://mysql:3306/MyMovieList?useSSL=false", \
+    user-name=cineuser, \
+    password="*Strongpin123", \
+    max-pool-size=25, \
+    enabled=true, \
+    use-ccm=true \
+)
+
+# 5) Reload so that the new module + datasource take effect
+:reload
+
+# 6) Shut down the embedded WildFly instance (so that Docker build can move on)
+stop-embedded-server

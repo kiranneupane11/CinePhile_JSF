@@ -79,7 +79,8 @@
     </h:form>
                 <h:form id="dialogs">
         <p:dialog id="manageMovieDialog" header="Movie Details" showEffect="fade" modal="true" widgetVar="manageMovieDialog" responsive="true">
-            <p:outputPanel id="manage-product-content" class="ui-fluid" rendered="#{not empty movieViewBean.selectedMovie}">
+            <p:outputPanel id="manage-product-content" class="ui-fluid">
+                <h:panelGroup rendered="#{not empty movieViewBean.selectedMovie}">
                     <p:graphicImage name="#{movieViewBean.selectedMovie.title}"
                                     styleClass="product-image" rendered="#{not empty movieViewBean.selectedMovie.imageUrl}" />
                     <div class="field">
@@ -109,6 +110,10 @@
                         <p:outputLabel for="description">Description</p:outputLabel>
                         <p:inputTextarea id="description" value="#{movieViewBean.selectedMovie.description}" required="true" />
                     </div>
+                </h:panelGroup>
+                <h:panelGroup rendered="#{empty movieViewBean.selectedMovie}">
+                    <p:outputLabel value="No movie chosen for editing." />
+                </h:panelGroup>
             </p:outputPanel>
 
             <f:facet name="footer">

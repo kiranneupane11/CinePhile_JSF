@@ -116,12 +116,15 @@ public class AuthenticationBean implements Serializable {
         Optional<User> userOpt = authService.login(usernameOrEmail, password);
             if(userOpt.isPresent()){
                 loggedInUser = userOpt.get();
-                String token = JwtUtil.generateToken(loggedInUser.getUsername(), loggedInUser.getRole(), 15);
+                String token = JwtUtil.generateToken(loggedInUser.getUsername(), loggedInUser.getRole(), 3600);
+                String contextPath = FacesContext.getCurrentInstance()
+                             .getExternalContext()
+                             .getRequestContextPath();
                 Map<String, Object> cookieProps = new HashMap<>();
-                cookieProps.put("path", "/");
+                cookieProps.put("path", contextPath);
                 cookieProps.put("httpOnly", true);
                 FacesContext.getCurrentInstance().getExternalContext()
-                    .addResponseCookie("jwtToken", token, cookieProps);
+                    .addResponseCookie("accessToken", token, cookieProps);
                 try {
             // Role-based redirection
             String redirectPage = loggedInUser.getRole() == Role.ADMIN 
@@ -153,7 +156,7 @@ public class AuthenticationBean implements Serializable {
         cookieProps.put("path", "/");
         cookieProps.put("maxAge", 0);
         FacesContext.getCurrentInstance().getExternalContext()
-            .addResponseCookie("token", null, cookieProps);
+            .addResponseCookie("accessToken", null, cookieProps);
         FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
         return "login?faces-redirect=true";
     }

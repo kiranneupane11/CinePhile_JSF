@@ -11,11 +11,12 @@
           <class>com.mycompany.mymovielist.model.UserPlaylist</class>
           <class>com.mycompany.mymovielist.model.UserPlaylistMovies</class>
 
-      <jta-data-source>java:jboss/datasources/MyMovieListDS</jta-data-source>
+      <jta-data-source>java:/jboss/datasources/MyMovieListDS</jta-data-source>
 
     <properties>
       <!-- Hibernate Configuration -->
       <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
+      <property name="hibernate.hbm2ddl.auto" value="update"/>
       <property name="hibernate.show_sql" value="true"/>
       <property name="hibernate.format_sql" value="true"/>
       <property name="hibernate.use_sql_comments" value="true"/>
