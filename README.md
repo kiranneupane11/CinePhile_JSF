@@ -1,3 +1,4 @@
+**CinePhile is a movie-tracking and rating web-application developed using Java and Java-ServerFaces(JSF)**
 ## 🎬 Demo
 
 ### Interactive Preview
